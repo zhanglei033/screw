@@ -129,6 +129,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\utils\Assert.h" />
+    <ClInclude Include="..\..\src\utils\IteratorBase.h" />
     <ClInclude Include="..\..\src\utils\STL.h" />
     <ClInclude Include="..\..\src\utils\UtilsDef.h" />
   </ItemGroup>

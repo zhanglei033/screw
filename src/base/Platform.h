@@ -1,0 +1,280 @@
+#pragma once
+#ifndef _PLATFORM_H_
+#define _PLATFORM_H_
+#include <type_traits>
+
+#define OS_WIN32_TAG            1
+#define OS_LINUX_TAG            2
+#define OS_APPLE_TAG            3
+
+#define COMPILER_MSVC_TAG       1
+#define COMPILER_GNUC_TAG       2
+#define COMPILER_CLANG_TAG      3
+#define COMPILER_APPLECLANG_TAG 4
+
+#if defined(__WIN32__) || defined(_WIN32)
+#define OS_PLATFORM_TAG OS_WIN32_TAG
+#elif defined(__APPLE_CC__)
+#define OS_PLATFORM_TAG OS_WIN32_TAG
+#else
+#defineOS_PLATFORM_TAG OS_WIN32_TAG
+#endif
+
+#if defined(__clang__)
+#if defined __apple_build_version__
+#define COMPILER_TYPE_TAG COMPILER_APPLECLANG_TAG
+#else
+#define COMPILER_TYPE_TAG COMPILER_CLANG_TAG
+#endif
+#define COMPILER_VERSION (((__clang_major__)*100) + (__clang_minor__ * 10) + __clang_patchlevel__)
+#elif defined(__GNUC__)
+#define COMPILER_TYPE_TAG COMPILER_GNUC_TAG
+#define COMPILER_VERSION  (((__GNUC__)*100) + (__GNUC_MINOR__ * 10) + __GNUC_PATCHLEVEL__)
+#elif defined(_MSC_VER)
+#define COMPILER_TYPE_TAG COMPILER_MSVC_TAG
+#define COMPILER_VERSION  _MSC_VER
+#else
+#error "No known compiler."
+#endif
+
+#if COMPILER_TYPE_TAG == COMPILER_MSVC_TAG || __MINGW32__ || __CYGWIN__
+#define DECL_IMPORT_HELPER __declspec(dllimport)
+#define DECL_EXPORT_HELPER __declspec(dllexport)
+#define DECL_HIDDEN_HELPER
+#elif COMPILER_TYPE_TAG == COMPILER_GNUC_TAG
+#if COMPILER_VERSION >= 400
+#define DECL_IMPORT_HELPER __attribute__((visibility("default")))
+#define DECL_EXPORT_HELPER __attribute__((visibility("default")))
+#define DECL_HIDDEN_HELPER __attribute__((visibility("hidden")))
+#else
+#define DECL_IMPORT_HELPER
+#define DECL_EXPORT_HELPER
+#define DECL_HIDDEN_HELPER
+#endif
+#elif COMPILER_TYPE_TAG == COMPILER_CLANG_TAG || COMPILER_TYPE_TAG == COMPILER_APPLECLANG_TAG
+#define DECL_IMPORT_HELPER __attribute__((visibility("default")))
+#define DECL_EXPORT_HELPER __attribute__((visibility("default")))
+#define DECL_HIDDEN_HELPER __attribute__((visibility("hidden")))
+#else
+#error "No known compiler."
+#endif
+
+#ifdef SHARED_LIB
+#ifdef SHARED_LIB_EXPORT
+#define DECL_EXPORT DECL_EXPORT_HELPER
+#else
+#define DECL_EXPORT DECL_IMPORT_HELPER
+#endif
+#define DECL_HIDDEN DECL_HIDDEN_HELPER
+#else
+#define DECL_EXPORT
+#define DECL_HIDDEN
+#endif
+
+#ifdef __cplusplus
+#if defined(_MSVC_LANG) && _MSVC_LANG > __cplusplus
+#define STD_LANG _MSVC_LANG
+#else
+#define STD_LANG __cplusplus
+#endif
+#else
+#define STD_LANG 0L
+#endif // __cplusplus
+
+#ifndef STD_HAS_CXX11
+#if (__cplusplus >= 201103L) || (_MSC_VER > 1900)
+#define STD_HAS_CXX11 1
+#else
+#define STD_HAS_CXX11 0
+#endif
+#endif // STD_HAS_CXX17
+
+#ifndef STD_HAS_CXX14
+#if STD_HAS_CXX11 && STD_LANG > 201103L
+#define STD_HAS_CXX14 1
+#else
+#define STD_HAS_CXX14 0
+#endif
+#endif // STD_HAS_CXX14
+
+#ifndef STD_HAS_CXX17
+#if STD_HAS_CXX14 && STD_LANG > 201402L
+#define STD_HAS_CXX17 1
+#else
+#define STD_HAS_CXX17 0
+#endif
+#endif // STD_HAS_CXX17
+
+#ifndef STD_HAS_CXX20
+#if STD_HAS_CXX17 && STD_LANG > 201703L
+#define STD_HAS_CXX20 1
+#else
+#define STD_HAS_CXX20 0
+#endif
+#endif // STD_HAS_CXX20
+
+#ifndef STD_HAS_CXX23
+#if STD_HAS_CXX20 && STD_LANG > 202002L
+#define STD_HAS_CXX23 1
+#else
+#define STD_HAS_CXX23 0
+#endif
+#endif // STD_HAS_CXX20
+
+#if STD_HAS_CXX11
+#define DECL_CONSTEXPR11         constexpr
+#define DECL_CONSTEXPR_OR_CONST  DECL_CONSTEXPR11
+#define DECL_NOEXCEPT            noexcept
+#define DECL_NOEXCEPT_OR_NOTHROW DECL_NOEXCEPT
+#else
+#define DECL_CONSTEXPR11
+#define DECL_CONSTEXPR_OR_CONST const
+#define DECL_NOEXCEPT
+#define DECL_NOEXCEPT_OR_NOTHROW throw()
+#endif
+
+#if STD_HAS_CXX14
+#define DECL_CONSTEXPR14 constexpr
+#else
+#define DECL_CONSTEXPR14
+#endif
+
+#if STD_HAS_CXX17
+#define DECL_CONSTEXPR17 constexpr
+#define DECL_INLINE_VAR  inline  
+#else
+#define DECL_CONSTEXPR17 inline
+#define DECL_INLINE_VAR static
+#endif
+
+#if STD_HAS_CXX20
+#define DECL_CONSTEXPR20 constexpr
+#else
+#define DECL_CONSTEXPR20 inline
+#endif
+
+#if defined(__cplusplus) && (__cplusplus >= 201703)
+#define DECL_NODISCARD [[nodiscard]]
+#elif (defined(__GNUC__) && (__GNUC__ >= 4)) || defined(__clang__) // includes clang, icc, and clang-cl
+#define DECL_NODISCARD __attribute__((warn_unused_result))
+#elif defined(_HAS_NODISCARD)
+#define DECL_NODISCARD _NODISCARD
+#elif (_MSC_VER >= 1700)
+#define DECL_NODISCARD _Check_return_
+#else
+#define DECL_NODISCARD
+#endif
+
+#define DECL_STATIC_CONSTEXPR static DECL_CONSTEXPR_OR_CONST
+
+#if COMPILER_TYPE_TAG == COMPILER_MSVC_TAG
+#define DECL_FORCE_INLINE __forceinline
+#elif COMPILER_TYPE_TAG == COMPILER_GNUC_TAG
+#define DECL_FORCE_INLINE inline __attribute__((always_inline))
+#elif COMPILER_TYPE_TAG == COMPILER_CLANG_TAG || COMPILER_TYPE_TAG == COMPILER_APPLECLANG_TAG
+#define DECL_FORCE_INLINE inline __attribute__((always_inline))
+#else
+#define DECL_FORCE_INLINE inline // no force inline
+#endif
+
+
+#if COMPILER_TYPE_TAG == COMPILER_MSVC_TAG
+#pragma warning(push)
+#pragma warning(disable : 4786) //  Turn off warnings generated by long std templates. This warns about truncation to 255 characters in debug/browse info
+#pragma warning(disable : 4503) // // Turn off warnings generated by long std templates.This warns about truncation to 255 characters in debug/browse info
+#pragma warning(disable : 4251) // disable: "<type> needs to have dll-interface to be used by clients'.Happens on STL member variables which are not public therefore is ok
+#pragma warning(disable : 4275) // disable: "non dll-interface class used as base for dll-interface class".Happens when deriving from Singleton because bug in compiler ignores template export
+#pragma warning(disable : 4290) // disable: "C++ Exception Specification ignored".This is because MSVC 6 did not implement all the C++ exception specifications in the ANSI C++ draft.
+#pragma warning(disable : 4661) // disable: "no suitable definition provided for explicit template instantiation request" Occurs in VC7 for no justifiable reason on all #includes of Singleton
+#pragma warning(disable : 4100) // disable: "unreferenced formal parameter". Many versions of VC have bugs which generate this error in cases where they shouldn't
+#endif
+
+#if COMPILER_TYPE_TAG == COMPILER_GNUC_TAG
+#define DECL_BEGIN_DISABLE_DEPRECATED_WARNING _Pragma("GCC diagnostic push") _Pragma("GCC diagnostic ignored \"-Wdeprecated-declarations\"")
+#define DECL_END_DISABLE_DEPRECATED_WARNING   _Pragma("GCC diagnostic pop")
+
+#define DECL_BEGIN_DISABLE_CONDITIONAL_EXPR_WARNING
+#define DECL_END_DISABLE_CONDITIONAL_EXPR_WARNING
+#if COMPILER_VERSION >= 700
+#define DECL_BEGIN_DISABLE_EXCEPT_TYPE_WARNING _Pragma("GCC diagnostic push") _Pragma("GCC diagnostic ignored \"-Wnoexcept-type\"")
+#define DECL_END_DISABLE_EXCEPT_TYPE_WARNING   _Pragma("GCC diagnostic pop")
+#else
+#define DECL_BEGIN_DISABLE_EXCEPT_TYPE_WARNING
+#define DECL_END_DISABLE_EXCEPT_TYPE_WARNING
+#endif
+
+#if COMPILER_VERSION >= 510
+#define DECL_BEGIN_DISABLE_OVERRIDE_WARNING _Pragma("GCC diagnostic push") _Pragma("GCC diagnostic ignored \"-Wsuggest-override\"")
+#define DECL_END_DISABLE_OVERRIDE_WARNING   _Pragma("GCC diagnostic pop")
+#else
+#define DECL_BEGIN_DISABLE_OVERRIDE_WARNING
+#define DECL_END_DISABLE_OVERRIDE_WARNING
+#endif
+
+#if COMPILER_VERSION >= 900
+#define DECL_BEGIN_DISABLE_INIT_LIST_WARNING _Pragma("GCC diagnostic push") _Pragma("GCC diagnostic ignored \"-Winit-list-lifetime\"")
+#define DECL_END_DISABLE_INIT_LIST_WARNING   _Pragma("GCC diagnostic pop")
+#else
+#define DECL_BEGIN_DISABLE_INIT_LIST_WARNING
+#define DECL_END_DISABLE_INIT_LIST_WARNING
+#endif
+
+#define DECL_DECLARE_PLUGIN_CTOR __attribute__((constructor))
+#define DECL_DECLARE_PLUGIN_DTOR __attribute__((destructor))
+
+#elif COMPILER_TYPE_TAG == COMPILER_CLANG_TAG || COMPILER_TYPE_TAG == COMPILER_APPLECLANG_TAG
+
+#if defined(__has_warning) && __has_warning("-Wdeprecated-declarations")
+#define DECL_BEGIN_DISABLE_DEPRECATED_WARNING _Pragma("clang diagnostic push") _Pragma("clang diagnostic ignored \"-Wdeprecated-declarations\"")
+#define DECL_END_DISABLE_DEPRECATED_WARNING   _Pragma("clang diagnostic pop")
+#else
+#define DECL_BEGIN_DISABLE_DEPRECATED_WARNING
+#define DECL_END_DISABLE_DEPRECATED_WARNING
+#endif
+
+#define DECL_BEGIN_DISABLE_CONDITIONAL_EXPR_WARNING
+#define DECL_END_DISABLE_CONDITIONAL_EXPR_WARNING
+
+#if defined(__has_warning) && __has_warning("-Wnoexcept-type")
+#define DECL_BEGIN_DISABLE_EXCEPT_TYPE_WARNING _Pragma("clang diagnostic push") _Pragma("clang diagnostic ignored \"-Wnoexcept-type\"")
+#define DECL_END_DISABLE_EXCEPT_TYPE_WARNING   _Pragma("clang diagnostic pop")
+#else
+#define DECL_BEGIN_DISABLE_EXCEPT_TYPE_WARNING
+#define DECL_END_DISABLE_EXCEPT_TYPE_WARNING
+#endif
+
+#if defined(__has_warning) && __has_warning("-Winconsistent-missing-override")
+#define DECL_BEGIN_DISABLE_OVERRIDE_WARNING _Pragma("clang diagnostic push") _Pragma("clang diagnostic ignored \"-Winconsistent-missing-override\"")
+#define DECL_END_DISABLE_OVERRIDE_WARNING   _Pragma("clang diagnostic pop")
+#else
+#define DECL_BEGIN_DISABLE_OVERRIDE_WARNING
+#define DECL_END_DISABLE_OVERRIDE_WARNING
+#endif
+
+#define DECL_BEGIN_DISABLE_INIT_LIST_WARNING
+#define DECL_END_DISABLE_INIT_LIST_WARNING
+
+#define DECL_DECLARE_PLUGIN_CTOR __attribute__((__constructor__))
+#define DECL_DECLARE_PLUGIN_DTOR __attribute__((__destructor__))
+
+#elif COMPILER_TYPE_TAG == COMPILER_MSVC_TAG
+#define DECL_BEGIN_DISABLE_DEPRECATED_WARNING       __pragma(warning(push)) __pragma(warning(disable : 4996))
+#define DECL_END_DISABLE_DEPRECATED_WARNING         __pragma(warning(pop))
+
+#define DECL_BEGIN_DISABLE_CONDITIONAL_EXPR_WARNING __pragma(warning(push)) __pragma(warning(disable : 4127))
+#define DECL_END_DISABLE_CONDITIONAL_EXPR_WARNING   __pragma(warning(pop))
+
+#define DECL_BEGIN_DISABLE_EXCEPT_TYPE_WARNING
+#define DECL_END_DISABLE_EXCEPT_TYPE_WARNING
+#define DECL_DECLARE_PLUGIN_CTOR
+#define DECL_DECLARE_PLUGIN_DTOR
+#define DECL_BEGIN_DISABLE_OVERRIDE_WARNING
+#define DECL_END_DISABLE_OVERRIDE_WARNING
+#define DECL_BEGIN_DISABLE_INIT_LIST_WARNING
+#define DECL_END_DISABLE_INIT_LIST_WARNING
+
+#else
+#pragma message("WARNING: unknown compiler")
+#endif
+
+#endif // !_PLATFORM_H_

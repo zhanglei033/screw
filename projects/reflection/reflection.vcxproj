@@ -18,11 +18,31 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\src\base\Assert.h" />
+    <ClInclude Include="..\..\src\base\CommonAlgorithms.h" />
+    <ClInclude Include="..\..\src\base\Platform.h" />
+    <ClInclude Include="..\..\src\base\STL.h" />
+    <ClInclude Include="..\..\src\base\StringView.h" />
+    <ClInclude Include="..\..\src\base\TypesDef.h" />
+    <ClInclude Include="..\..\src\base\Variant.h" />
+    <ClInclude Include="..\..\src\reflection\Comparison.h" />
+    <ClInclude Include="..\..\src\reflection\RuntimeTypeData.h" />
+    <ClInclude Include="..\..\src\reflection\RuntimeTypeInfo.h" />
+    <ClInclude Include="..\..\src\test\VariantTest.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\src\reflection\RuntimeTypeInfo.cpp" />
+    <ClCompile Include="..\..\src\reflection\test.cpp" />
+    <ClCompile Include="..\..\src\test\VariantTest.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+    </ClCompile>
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{78e9b03f-dcef-4b86-9ff5-5807174b75d6}</ProjectGuid>
-    <RootNamespace>utils</RootNamespace>
+    <ProjectGuid>{5fcdc09f-815a-49d4-bae5-4bb3b114223a}</ProjectGuid>
+    <RootNamespace>reflection</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -70,6 +90,12 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <IncludePath>$(SolutionDir)..\src;$(IncludePath)</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <IncludePath>$(SolutionDir)..\src;$(IncludePath)</IncludePath>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
@@ -104,8 +130,8 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp14</LanguageStandard>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\src</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -120,8 +146,6 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <LanguageStandard>stdcpp14</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -130,49 +154,6 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
-  <ItemGroup>
-    <ClInclude Include="..\..\src\utils\ArrayList.h" />
-    <ClInclude Include="..\..\src\utils\Assert.h" />
-    <ClInclude Include="..\..\src\utils\IteratorBase.h" />
-    <ClInclude Include="..\..\src\utils\MetaData.h" />
-    <ClInclude Include="..\..\src\utils\STL.h" />
-    <ClInclude Include="..\..\src\utils\UtilsDef.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="..\..\src\rttr\constructor.cpp" />
-    <ClCompile Include="..\..\src\rttr\destructor.cpp" />
-    <ClCompile Include="..\..\src\rttr\detail\comparison\compare_equal.cpp" />
-    <ClCompile Include="..\..\src\rttr\detail\comparison\compare_less.cpp" />
-    <ClCompile Include="..\..\src\rttr\detail\constructor\constructor_wrapper_base.cpp" />
-    <ClCompile Include="..\..\src\rttr\detail\conversion\std_conversion_functions.cpp" />
-    <ClCompile Include="..\..\src\rttr\detail\destructor\destructor_wrapper_base.cpp" />
-    <ClCompile Include="..\..\src\rttr\detail\enumeration\enumeration_helper.cpp" />
-    <ClCompile Include="..\..\src\rttr\detail\enumeration\enumeration_wrapper_base.cpp" />
-    <ClCompile Include="..\..\src\rttr\detail\library\library_unix.cpp" />
-    <ClCompile Include="..\..\src\rttr\detail\library\library_win.cpp" />
-    <ClCompile Include="..\..\src\rttr\detail\method\method_wrapper_base.cpp" />
-    <ClCompile Include="..\..\src\rttr\detail\misc\standard_types.cpp" />
-    <ClCompile Include="..\..\src\rttr\detail\parameter_info\parameter_info_wrapper_base.cpp" />
-    <ClCompile Include="..\..\src\rttr\detail\property\property_wrapper_base.cpp" />
-    <ClCompile Include="..\..\src\rttr\detail\registration\registration_executer.cpp" />
-    <ClCompile Include="..\..\src\rttr\detail\registration\registration_state_saver.cpp" />
-    <ClCompile Include="..\..\src\rttr\detail\type\type_data.cpp" />
-    <ClCompile Include="..\..\src\rttr\detail\type\type_register.cpp" />
-    <ClCompile Include="..\..\src\rttr\detail\variant\variant_compare.cpp" />
-    <ClCompile Include="..\..\src\rttr\enumeration.cpp" />
-    <ClCompile Include="..\..\src\rttr\library.cpp" />
-    <ClCompile Include="..\..\src\rttr\method.cpp" />
-    <ClCompile Include="..\..\src\rttr\parameter_info.cpp" />
-    <ClCompile Include="..\..\src\rttr\policy.cpp" />
-    <ClCompile Include="..\..\src\rttr\property.cpp" />
-    <ClCompile Include="..\..\src\rttr\registration.cpp" />
-    <ClCompile Include="..\..\src\rttr\type.cpp" />
-    <ClCompile Include="..\..\src\rttr\variant.cpp" />
-    <ClCompile Include="..\..\src\rttr\variant_associative_view.cpp" />
-    <ClCompile Include="..\..\src\rttr\variant_sequential_view.cpp" />
-    <ClCompile Include="..\..\src\rttr\visitor.cpp" />
-    <ClCompile Include="..\..\src\utils\test.cpp" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

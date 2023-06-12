@@ -4,7 +4,7 @@
 #include "UtilsDef.h"
 #include <iterator>
 #include <type_traits>
-// std元编程的一些向前兼容和扩展
+// std的一些向前兼容和扩展
 namespace std {
 // 扩展
 template <class Iter>

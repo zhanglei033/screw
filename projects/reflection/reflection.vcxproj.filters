@@ -19,6 +19,9 @@
     <Filter Include="头文件\test">
       <UniqueIdentifier>{1e5668b4-c404-423a-9e1a-6b3e2c7aab8c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="源文件\test">
+      <UniqueIdentifier>{ba69a7d5-249e-4d14-a9f9-1edc9595ed68}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\base\Platform.h">
@@ -63,7 +66,7 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\test\VariantTest.cpp">
-      <Filter>源文件</Filter>
+      <Filter>源文件\test</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

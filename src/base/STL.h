@@ -5,7 +5,9 @@
 #include "TypesDef.h"
 #include <iterator>
 #include <type_traits>
+#include <utility>
 // std的一些向前兼容和扩展
+
 namespace std {
 #pragma region compatible CXX17
 #if STD_HAS_CXX17 == 0
@@ -32,7 +34,6 @@ DECL_INLINE_VAR DECL_CONSTEXPR11 bool is_in_place_index_specialization = false;
 template <size_t Idx>
 DECL_INLINE_VAR DECL_CONSTEXPR11 bool is_in_place_index_specialization<in_place_index_t<Idx>> = true;
 #pragma endregion
-
 
 #pragma region destroy at
 template <class T>
@@ -127,18 +128,21 @@ DECL_INLINE_VAR DECL_CONSTEXPR11 bool is_nothrow_invocable_r_v = select_invoke_t
 #pragma endregion
 
 #pragma region swap
+template <class T>
+struct is_nothrow_swappable;
+
 template <class T1, class T2, class = void>
 struct swappable_with_helper : false_type
 {
 };
 
 template <class T1, class T2>
-struct swappable_with_helper<T1, T2, void_t<decltype(std::swap(std::declval<T1>(), std::declval<T2>()))>> : true_type
+struct swappable_with_helper<T1, T2, void_t<decltype(swap(std::declval<T1>(), std::declval<T2>()))>> : true_type
 {
 };
 
 template <class T1, class T2>
-struct is_swappable_with : bool_constant<conjunction_v<swappable_with_helper<T1, T2>, swappable_with_helper<T1, T2>>>
+struct is_swappable_with : bool_constant<conjunction_v<swappable_with_helper<T1, T2>, swappable_with_helper<T2, T1>>>
 {
 };
 
@@ -154,7 +158,8 @@ template <class T>
 DECL_INLINE_VAR DECL_CONSTEXPR11 bool is_swappable_v = is_swappable<T>::value;
 
 template <class T1, class T2>
-struct swap_cannot_throw : bool_constant<noexcept(std::swap(std::declval<T1>(), std::declval<T2>()))&& noexcept(std::swap(std::declval<T2>(), std::declval<T1>()))>
+struct swap_cannot_throw : bool_constant<noexcept(swap(std::declval<T1>(), std::declval<T2>())) //
+                                             && noexcept(swap(std::declval<T2>(), std::declval<T1>()))>
 {
 };
 
@@ -166,8 +171,13 @@ struct is_nothrow_swappable_with : bool_constant<conjunction_v<is_swappable_with
 template <class T1, class T2>
 DECL_INLINE_VAR DECL_CONSTEXPR11 bool is_nothrow_swappable_with_v = is_nothrow_swappable_with<T1, T2>::value;
 
+template <class _Ty>
+struct is_nothrow_swappable_impl : is_nothrow_swappable_with<add_lvalue_reference_t<_Ty>, add_lvalue_reference_t<_Ty>>::type
+{
+};
+
 template <class T>
-struct is_nothrow_swappable : is_nothrow_swappable_with<add_lvalue_reference_t<T>, add_lvalue_reference_t<T>>::type
+struct is_nothrow_swappable : is_nothrow_swappable_impl<T>::type
 {
 };
 template <class T>
@@ -476,6 +486,94 @@ struct meta_list_extract_type
 
 template <class List, class T>
 using meta_list_extract_type_t = typename meta_list_extract_type<List, T>::type;
+
+template <class>
+struct meta_as_list_impl;
+template <template <class...> class List, class... Types>
+struct meta_as_list_impl<List<Types...>>
+{
+    using type = meta_list<Types...>;
+};
+template <class T, T... Idxs>
+struct meta_as_list_impl<integer_sequence<T, Idxs...>>
+{
+    using type = meta_list<integral_constant<T, Idxs>...>;
+};
+template <class T>
+using meta_as_list = typename meta_as_list_impl<T>::type;
+
+template <class List>
+struct meta_as_integer_sequence_impl;
+template <template <class...> class List, class T, T... Idxs>
+struct meta_as_integer_sequence_impl<List<integral_constant<T, Idxs>...>>
+{
+    using type = integer_sequence<T, Idxs...>;
+};
+template <class List>
+using meta_as_integer_sequence = typename meta_as_integer_sequence_impl<List>::type;
+
+template <class...>
+struct meta_concat_impl;
+template <class... Types>
+using meta_concat = typename meta_concat_impl<Types...>::type;
+
+template <template <class...> class List>
+struct meta_concat_impl<List<>>
+{
+    using type = List<>;
+};
+
+template <template <class...> class List, class... Items1>
+struct meta_concat_impl<List<Items1...>>
+{
+    using type = List<Items1...>;
+};
+
+template <template <class...> class List, class... Items1, class... Items2>
+struct meta_concat_impl<List<Items1...>, List<Items2...>>
+{
+    using type = List<Items1..., Items2...>;
+};
+
+template <template <class...> class List, class... Items1, class... Items2, class... Items3>
+struct meta_concat_impl<List<Items1...>, List<Items2...>, List<Items3...>>
+{
+    using type = List<Items1..., Items2..., Items3...>;
+};
+
+template <template <class...> class List, class... Items1, class... Items2, class... Items3, class... Rest>
+struct meta_concat_impl<List<Items1...>, List<Items2...>, List<Items3...>, Rest...>
+{
+    using type = meta_concat<List<Items1..., Items2..., Items3...>, Rest...>;
+};
+
+template <class ListOfLists>
+using meta_join = meta_apply<meta_func<meta_concat>, ListOfLists>;
+
+template <class>
+struct meta_cartesian_product_impl;
+template <class ListOfLists>
+using meta_cartesian_product = typename meta_cartesian_product_impl<ListOfLists>::type;
+
+template <template <class...> class List>
+struct meta_cartesian_product_impl<List<>>
+{
+    using type = List<>;
+};
+
+template <template <class...> class List1, template <class...> class List2, class... Items>
+struct meta_cartesian_product_impl<List1<List2<Items...>>>
+{
+    using type = List1<List2<Items>...>;
+};
+
+template <template <class...> class List1, class... Items, template <class...> class List2, class... Lists>
+struct meta_cartesian_product_impl<List1<List2<Items...>, Lists...>>
+{
+    using type = meta_join<List1<meta_transform<meta_func_bind<meta_func<meta_list_push_front>, Items>, meta_cartesian_product<List1<Lists...>>>...>>;
+};
+
+
 #pragma endregion
 
 #pragma region construct or destroy in place

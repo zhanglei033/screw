@@ -92,7 +92,7 @@ struct variant_init_helper<enable_if_t<variant_init_helper_impl<T, Types...>::is
 template <class T, class... Types>
 using variant_init_t = meta_list_at_t<typename variant_init_helper<void, T, Types...>::type, 1>;
 template <class T, class... Types>
-using variant_init_idx = meta_list_at_t<typename variant_init_helper<void, T, Types...>::type, 0>;
+using variant_initidx = meta_list_at_t<typename variant_init_helper<void, T, Types...>::type, 0>;
 #pragma endregion
 
 #pragma region variant impl
@@ -192,6 +192,26 @@ struct variant_raw_dispatch_table<Func, get_storage, index_sequence<Idxs...>>
     static DECL_CONSTEXPR11 dispatch_type dispatchs[] = {&variant_raw_visit_valueless<Func, get_storage>, &variant_raw_visit_dispatch<Idxs, Func, get_storage>...};
 };
 
+#define VARIANT_VISIT_STAMP_CASE(n)                                                                                                             \
+    case (n) + 1:                                                                                                                               \
+        if constexpr ((n) < size)                                                                                                               \
+        {                                                                                                                                       \
+            return static_cast<Func&&>(func)(variant_tagged_ref_type<get_storage, (n)>{variant_raw_get<(n)>(static_cast<get_storage&&>(obj))}); \
+        }                                                                                                                                       \
+        std::unreachable()
+
+#define VARIANT_VISIT_STAMP(stamper, n)                                                                                 \
+    DECL_CONSTEXPR11 size_t size = remove_reference_t<get_storage>::size;                                               \
+    static_assert(((n) == 4 || size > (n) / 4) && size <= (n));                                                         \
+    switch (idx)                                                                                                        \
+    {                                                                                                                   \
+    case 0:                                                                                                             \
+        return static_cast<Func&&>(func)(variant_tagged<get_storage&&, variant_npos>{static_cast<get_storage&&>(obj)}); \
+        stamper(0, VARIANT_VISIT_STAMP_CASE);                                                                           \
+    default:                                                                                                            \
+        std::unreachable();                                                                                             \
+    }
+
 #define VARIANT_STAMP4(n, x) \
     x(n);                    \
     x(n + 1);                \
@@ -217,26 +237,6 @@ struct variant_raw_dispatch_table<Func, get_storage, index_sequence<Idxs...>>
     VARIANT_STAMP64(n + 192, x)
 
 #define VARIANT_STAMP(n, x) x(VARIANT_STAMP##n, n)
-
-#define VARIANT_VISIT_STAMP_CASE(n)                                                                                                             \
-    case (n) + 1:                                                                                                                               \
-        if constexpr ((n) < size)                                                                                                               \
-        {                                                                                                                                       \
-            return static_cast<Func&&>(func)(variant_tagged_ref_type<get_storage, (n)>{variant_raw_get<(n)>(static_cast<get_storage&&>(obj))}); \
-        }                                                                                                                                       \
-        std::unreachable()
-
-#define VARIANT_VISIT_STAMP(stamper, n)                                                                                 \
-    DECL_CONSTEXPR11 size_t size = remove_reference_t<get_storage>::size;                                               \
-    static_assert(((n) == 4 || size > (n) / 4) && size <= (n));                                                         \
-    switch (idx)                                                                                                        \
-    {                                                                                                                   \
-    case 0:                                                                                                             \
-        return static_cast<Func&&>(func)(variant_tagged<get_storage&&, variant_npos>{static_cast<get_storage&&>(obj)}); \
-        stamper(0, VARIANT_VISIT_STAMP_CASE);                                                                           \
-    default:                                                                                                            \
-        std::unreachable();                                                                                             \
-    }
 
 template <int Strategy>
 struct variant_raw_visit_impl;
@@ -809,7 +809,13 @@ using VariantDestructionFacade = conditional_t<conjunction_v<is_trivially_destru
                                                VariantDestructionFacadeImpl<Types...>>;
 #pragma endregion
 
-#pragma region variant relop
+#pragma region variant other
+template <class... Types, enable_if_t<conjunction_v<is_move_constructible<Types>..., is_swappable<Types>...>, int> = 0>
+DECL_CONSTEXPR20 void swap(variant<Types...>& l, variant<Types...>& r) noexcept(noexcept(l.swap(r)))
+{
+    l.swap(r);
+}
+
 template <class Oper, class Result, class... Types>
 struct variant_relop_visitor
 {
@@ -869,7 +875,7 @@ public:
                                            && !is_in_place_index_specialization<remove_cvref_t<T>>     //
                                            && is_constructible_v<variant_init_t<T, Types...>, T>>>
     DECL_CONSTEXPR11 variant(T&& obj) DECL_NOEXCEPT(is_nothrow_constructible_v<variant_init_t<T, Types...>, T>)
-        : Mybase(in_place_index<variant_init_idx<T, Types...>::value>, static_cast<T&&>(obj))
+        : Mybase(in_place_index<variant_initidx<T, Types...>::value>, static_cast<T&&>(obj))
     {
     }
 
@@ -903,7 +909,7 @@ public:
                                    int> = 0>
     DECL_CONSTEXPR11 variant& operator=(T&& obj) DECL_NOEXCEPT(is_nothrow_assignable_v<variant_init_t<T, Types...>&, T>&& is_nothrow_constructible_v<variant_init_t<T, Types...>, T>)
     {
-        constexpr size_t targetIdx = variant_init_idx<T, Types...>::value;
+        constexpr size_t targetIdx = variant_initidx<T, Types...>::value;
         if (index() == targetIdx)
         {
             auto& target = variant_raw_get<targetIdx>(get_storage());
@@ -1330,6 +1336,253 @@ struct variant_size<variant<Types...>> : integral_constant<size_t, sizeof...(Typ
 };
 template <class T>
 DECL_INLINE_VAR DECL_CONSTEXPR11 size_t variant_size_v = variant_size<T>::value;
+#pragma endregion
+
+#pragma region visit
+
+template <class Callable, class IndexSequence, class... Variants>
+struct variant_single_visit_result;
+
+template <class Callable, size_t... Idxs, class... Variants>
+struct variant_single_visit_result<Callable, index_sequence<Idxs...>, Variants...>
+{
+    using type = decltype(std::invoke(std::declval<Callable>(), variant_raw_get<Idxs == 0 ? 0 : Idxs - 1>(std::declval<Variants>().get_storage())...));
+};
+
+template <class...>
+struct all_same : true_type
+{
+};
+template <class First, class... Rest>
+struct all_same<First, Rest...> : bool_constant<conjunction_v<is_same<First, Rest>...>>
+{
+};
+
+template <class Callable, class ListOfIndexVectors, class... Variants>
+struct variant_all_visit_results_same;
+
+template <class Callable, class... IndexVectors, class... Variants>
+struct variant_all_visit_results_same<Callable, meta_list<IndexVectors...>, Variants...> : all_same<typename variant_single_visit_result<Callable, IndexVectors, Variants...>::type...>::type
+{
+};
+
+template <class Callable, class... Types>
+using variant_visit_result_t = decltype(std::invoke(std::declval<Callable>(), variant_raw_get<0>(std::declval<Types>().get_storage())...));
+
+template <class... Types>
+variant<Types...>& as_variant_impl(variant<Types...>&);
+template <class... Types>
+const variant<Types...>& as_variant_impl(const variant<Types...>&);
+template <class... Types>
+variant<Types...>&& as_variant_impl(variant<Types...>&&);
+template <class... Types>
+const variant<Types...>&& as_variant_impl(const variant<Types...>&&);
+template <class T>
+using as_variant = decltype(as_variant_impl(std::declval<T>()));
+
+template <class... Variants>
+DECL_INLINE_VAR DECL_CONSTEXPR11 size_t variant_total_states_impl = 1;
+
+template <class FirstVariant, class... RestVariant>
+DECL_INLINE_VAR DECL_CONSTEXPR11 size_t variant_total_states_impl<FirstVariant, RestVariant...> =
+    (variant_size_v<FirstVariant> + 1) * variant_total_states_impl<RestVariant...>;
+
+template <class... Variants>
+DECL_INLINE_VAR DECL_CONSTEXPR11 size_t variant_total_states = variant_total_states_impl<Variants...>;
+
+DECL_NODISCARD constexpr size_t variant_visit_index(const size_t acc) noexcept
+{
+    return acc;
+}
+template <class FirstTy, class... RestTys>
+DECL_NODISCARD constexpr size_t variant_visit_index(size_t acc, const FirstTy& first, const RestTys&... rest) noexcept
+{
+    acc += (first.index() + 1) * variant_total_states<RestTys...>;
+    return variant_visit_index(acc, rest...);
+}
+
+template <class>
+struct variant_dispatcher;
+
+template <size_t... I>
+struct variant_dispatcher<index_sequence<I...>>
+{
+    template <class Ret, class Callable, class... Types, bool AnyValueless = I == 0>
+    DECL_NODISCARD static constexpr Ret Dispatch2(Callable&& obj, Types&&... args)
+    {
+        if constexpr (AnyValueless)
+        {
+            throw_bad_variant_access();
+        }
+        else
+        {
+            return std::invoke(static_cast<Callable&&>(obj), variant_raw_get<I - 1>(static_cast<Types&&>(args).get_storage())...);
+        }
+    }
+};
+
+template <class Ret, class Ordinals, class Callable, class Variants>
+struct variant_dispatch_table;
+
+template <class Ret, class... Ordinals, class Callable, class... Variants>
+struct variant_dispatch_table<Ret, meta_list<Ordinals...>, Callable, meta_list<Variants...>>
+{
+    using Dispatch_Type                    = Ret (*)(Callable&&, Variants&&...);
+    static constexpr Dispatch_Type Array[] = {&variant_dispatcher<Ordinals>::template Dispatch2<Ret, Callable, Variants...>...};
+};
+
+template <int Strategy>
+struct visit_strategy;
+
+template <>
+struct visit_strategy<-1>
+{
+    template <class Ret, class ListOfIndexVectors, class Callable, class... Variants>
+    static constexpr Ret visit(size_t idx, Callable&& obj, Variants&&... args)
+    {
+        constexpr size_t size = variant_total_states<remove_cvref_t<Variants>...>;
+        static_assert(size > 256);
+        constexpr auto& Array = variant_dispatch_table<Ret, ListOfIndexVectors, Callable, meta_list<Variants...>>::Array;
+        return Array[idx](static_cast<Callable&&>(obj), static_cast<Variants&&>(args)...);
+    }
+};
+
+template <>
+struct visit_strategy<0>
+{
+    template <class Ret, class, class Callable>
+    static constexpr Ret visit(size_t, Callable&& obj)
+    {
+        if constexpr (is_void_v<Ret>)
+        {
+            return static_cast<void>(static_cast<Callable&&>(obj)());
+        }
+        else
+        {
+            return static_cast<Callable&&>(obj)();
+        }
+    }
+};
+
+#define VISIT_CASE(n)                                                                           \
+    case (n):                                                                                   \
+        if constexpr ((n) < size)                                                               \
+        {                                                                                       \
+            using Indices = meta_list_at_t<ListOfIndexVectors, (n)>;                            \
+            return variant_dispatcher<Indices>::template Dispatch2<Ret, Callable, Variants...>( \
+                static_cast<Callable&&>(obj), static_cast<Variants&&>(args)...);                \
+        }                                                                                       \
+        std::unreachable();
+
+#define VISIT_STAMP(stamper, n)                                                \
+    constexpr size_t size = variant_total_states<remove_cvref_t<Variants>...>; \
+    static_assert(size > (n) / 4 && size <= (n));                              \
+    switch (idx)                                                               \
+    {                                                                          \
+        stamper(0, VISIT_CASE);                                                \
+    default:                                                                   \
+        std::unreachable();                                                    \
+    }
+
+#define VARIANT_STAMP4(n, x) \
+    x(n);                    \
+    x(n + 1);                \
+    x(n + 2);                \
+    x(n + 3)
+
+#define VARIANT_STAMP16(n, x) \
+    VARIANT_STAMP4(n, x);     \
+    VARIANT_STAMP4(n + 4, x); \
+    VARIANT_STAMP4(n + 8, x); \
+    VARIANT_STAMP4(n + 12, x)
+
+#define VARIANT_STAMP64(n, x)   \
+    VARIANT_STAMP16(n, x);      \
+    VARIANT_STAMP16(n + 16, x); \
+    VARIANT_STAMP16(n + 32, x); \
+    VARIANT_STAMP16(n + 48, x)
+
+#define VARIANT_STAMP256(n, x)   \
+    VARIANT_STAMP64(n, x);       \
+    VARIANT_STAMP64(n + 64, x);  \
+    VARIANT_STAMP64(n + 128, x); \
+    VARIANT_STAMP64(n + 192, x)
+
+#define VARIANT_STAMP(n, x) x(VARIANT_STAMP##n, n)
+
+template <>
+struct visit_strategy<1>
+{
+    template <class Ret, class ListOfIndexVectors, class Callable, class... Variants>
+    static constexpr Ret visit(size_t idx, Callable&& obj, Variants&&... args)
+    {
+        VARIANT_STAMP(4, VISIT_STAMP);
+    }
+};
+
+template <>
+struct visit_strategy<2>
+{
+    template <class Ret, class ListOfIndexVectors, class Callable, class... Variants>
+    static constexpr Ret visit(size_t idx, Callable&& obj, Variants&&... args)
+    {
+        VARIANT_STAMP(16, VISIT_STAMP);
+    }
+};
+
+template <>
+struct visit_strategy<3>
+{
+    template <class Ret, class ListOfIndexVectors, class Callable, class... Variants>
+    static constexpr Ret visit(size_t idx, Callable&& obj, Variants&&... args)
+    {
+        VARIANT_STAMP(64, VISIT_STAMP);
+    }
+};
+
+template <>
+struct visit_strategy<4>
+{
+    template <class Ret, class ListOfIndexVectors, class Callable, class... Variants>
+    static constexpr Ret visit(size_t idx, Callable&& obj, Variants&&... args)
+    {
+        VARIANT_STAMP(256, VISIT_STAMP);
+    }
+};
+
+#undef VISIT_STAMP
+#undef VISIT_CASE
+#undef VARIANT_STAMP
+#undef VARIANT_STAMP4
+#undef VARIANT_STAMP16
+#undef VARIANT_STAMP64
+#undef VARIANT_STAMP256
+
+template <size_t Size, class Ret, class ListOfIndexVectors, class Callable, class... Variants>
+constexpr Ret visit_impl(Callable&& obj, Variants&&... args)
+{
+    constexpr int Strategy = Size == 1 ? 0 : Size <= 4 ? 1 :
+                                         Size <= 16    ? 2 :
+                                         Size <= 64    ? 3 :
+                                         Size <= 256   ? 4 :
+                                                         -1;
+    return visit_strategy<Strategy>::template visit<Ret, ListOfIndexVectors>(variant_visit_index(0, static_cast<as_variant<Variants>&>(args)...), static_cast<Callable&&>(obj), static_cast<as_variant<Variants>&&>(args)...);
+}
+
+template <class Callable, class... Variants, class = void_t<as_variant<Variants>...>>
+constexpr variant_visit_result_t<Callable, as_variant<Variants>...> visit(Callable&& obj, Variants&&... args)
+{
+    constexpr auto Size      = variant_total_states<remove_cvref_t<as_variant<Variants>>...>;
+    using ListOfIndexLists   = meta_list<meta_as_list<make_index_sequence<1 + variant_size_v<remove_cvref_t<as_variant<Variants>>>>>...>;
+    using ListOfIndexVectors = meta_transform_t<meta_func<meta_as_integer_sequence>, meta_cartesian_product<ListOfIndexLists>>;
+    using Ret                = variant_visit_result_t<Callable, as_variant<Variants>...>;
+    static_assert(variant_all_visit_results_same<Callable, ListOfIndexVectors, as_variant<Variants>...>::value,
+                  "visit() requires the result of all potential invocations to have the same type and value category "
+                  "(N4835 [variant.visit]/2).");
+
+    return visit_impl<Size, Ret, ListOfIndexVectors>(static_cast<Callable&&>(obj), static_cast<Variants&&>(args)...);
+}
+
 #pragma endregion
 
 } // namespace std

@@ -1,11 +1,15 @@
+#include <functional>
 #include "base/Variant.h"
 #include "test/VariantTest.h"
 #include <cassert>
+#include <chrono>
 #include <exception>
+#include <string>
 #include <type_traits>
-#define ASSERT_NOT_NOEXCEPT(v)   static_assert(!noexcept(v), "must be not noexcept");
-#define ASSERT_NOEXCEPT(v)       static_assert(noexcept(v), "must be noexcept");
-#define ASSERT_SAME_TYPE(t1, t2) static_assert(std::is_same_v<t1, t2>, "must be same type");
+#define ASSERT_NOT_NOEXCEPT(v)          static_assert(!noexcept(v), "must be not noexcept");
+#define ASSERT_NOEXCEPT(v)              static_assert(noexcept(v), "must be noexcept");
+#define ASSERT_SAME_TYPE(t1, t2)        static_assert(std::is_same_v<t1, t2>, "must be same type");
+#define LIBCPP_STATIC_ASSERT(expr, msg) static_assert(!expr, msg)
 
 namespace VariantTest {
 
@@ -2767,7 +2771,7 @@ int run_test()
 
     return 0;
 }
-} // namespace ctor::move
+} // namespace move
 
 namespace T {
 struct Dummy
@@ -2918,7 +2922,7 @@ int run_test()
     test_construction_with_repeated_types();
     return 0;
 }
-} // namespace ctor::T
+} // namespace T
 } // namespace ctor
 
 namespace dtor {
@@ -3043,7 +3047,7 @@ int run_test()
     test_emplace_sfinae();
     return 0;
 }
-}
+} // namespace index
 
 namespace index_init_list_args {
 struct InitList
@@ -3103,28 +3107,653 @@ int run_test()
     test_basic();
     return 0;
 }
-} // namespace emplace::index_init_list_args
+} // namespace index_init_list_args
+
+namespace type_args {
+template <class Var, class T, class... Args>
+constexpr auto test_emplace_exists_imp(int) -> decltype(std::declval<Var>().template emplace<T>(std::declval<Args>()...), true)
+{
+    return true;
 }
+
+template <class, class, class...>
+constexpr auto test_emplace_exists_imp(long) -> bool
+{
+    return false;
+}
+
+template <class... Args>
+constexpr bool emplace_exists()
+{
+    return test_emplace_exists_imp<Args...>(0);
+}
+
+void test_emplace_sfinae()
+{
+    {
+        using V = std::variant<int, void*, const void*>;
+        static_assert(emplace_exists<V, int>(), "");
+        static_assert(emplace_exists<V, int, int>(), "");
+        static_assert(!emplace_exists<V, int, decltype(nullptr)>(),
+                      "cannot construct");
+        static_assert(emplace_exists<V, void*, decltype(nullptr)>(), "");
+        static_assert(!emplace_exists<V, void*, int>(), "cannot construct");
+        static_assert(emplace_exists<V, void*, int*>(), "");
+        static_assert(!emplace_exists<V, void*, const int*>(), "");
+        static_assert(emplace_exists<V, const void*, const int*>(), "");
+        static_assert(emplace_exists<V, const void*, int*>(), "");
+    }
+}
+
+void test_basic()
+{
+    {
+        using V = std::variant<int>;
+        V v(42);
+        auto& ref1 = v.emplace<int>();
+        static_assert(std::is_same_v<int&, decltype(ref1)>, "");
+        assert(std::get<0>(v) == 0);
+        assert(&ref1 == &std::get<0>(v));
+        auto& ref2 = v.emplace<int>(42);
+        static_assert(std::is_same_v<int&, decltype(ref2)>, "");
+        assert(std::get<0>(v) == 42);
+        assert(&ref2 == &std::get<0>(v));
+    }
+    {
+        using V     = std::variant<int, long, const void*, std::string>;
+        const int x = 100;
+        V v(std::in_place_type<int>, -1);
+        auto& ref1 = v.emplace<long>();
+        static_assert(std::is_same_v<long&, decltype(ref1)>, "");
+        assert(std::get<1>(v) == 0);
+        assert(&ref1 == &std::get<1>(v));
+        auto& ref2 = v.emplace<const void*>(&x);
+        static_assert(std::is_same_v<const void*&, decltype(ref2)>, "");
+        assert(std::get<2>(v) == &x);
+        assert(&ref2 == &std::get<2>(v));
+        // emplace with multiple args
+        auto& ref3 = v.emplace<std::string>(3u, 'a');
+        static_assert(std::is_same_v<std::string&, decltype(ref3)>, "");
+        assert(std::get<3>(v) == "aaa");
+        assert(&ref3 == &std::get<3>(v));
+    }
+}
+
+int run_test()
+{
+    test_basic();
+    test_emplace_sfinae();
+
+    return 0;
+}
+} // namespace type_args
+
+namespace in_place_type_init_list_args {
+struct InitList
+{
+    std::size_t size;
+    constexpr InitList(std::initializer_list<int> il)
+        : size(il.size()) {}
+};
+
+struct InitListArg
+{
+    std::size_t size;
+    int value;
+    constexpr InitListArg(std::initializer_list<int> il, int v)
+        : size(il.size()), value(v) {}
+};
+
+void test_ctor_sfinae()
+{
+    using IL = std::initializer_list<int>;
+    { // just init list
+        using V = std::variant<InitList, InitListArg, int>;
+        static_assert(std::is_constructible<V, std::in_place_type_t<InitList>, IL>::value, "");
+    }
+    { // too many arguments
+        using V = std::variant<InitList, InitListArg, int>;
+        static_assert(!std::is_constructible<V, std::in_place_type_t<InitList>, IL, int>::value, "");
+    }
+    { // too few arguments
+        using V = std::variant<InitList, InitListArg, int>;
+        static_assert(!std::is_constructible<V, std::in_place_type_t<InitListArg>, IL>::value, "");
+    }
+    { // init list and arguments
+        using V = std::variant<InitList, InitListArg, int>;
+        static_assert(std::is_constructible<V, std::in_place_type_t<InitListArg>, IL, int>::value, "");
+    }
+    { // not constructible from arguments
+        using V = std::variant<InitList, InitListArg, int>;
+        static_assert(!std::is_constructible<V, std::in_place_type_t<int>, IL>::value, "");
+    }
+    { // duplicate types in variant
+        using V = std::variant<InitListArg, InitListArg, int>;
+        static_assert(!std::is_constructible<V, std::in_place_type_t<InitListArg>, IL, int>::value, "");
+    }
+}
+
+void test_ctor_basic()
+{
+    {
+        constexpr std::variant<InitList, InitListArg> v(
+            std::in_place_type<InitList>, {1, 2, 3});
+        static_assert(v.index() == 0, "");
+        static_assert(std::get<0>(v).size == 3, "");
+    }
+    {
+        constexpr std::variant<InitList, InitListArg> v(
+            std::in_place_type<InitListArg>, {1, 2, 3, 4}, 42);
+        static_assert(v.index() == 1, "");
+        static_assert(std::get<1>(v).size == 4, "");
+        static_assert(std::get<1>(v).value == 42, "");
+    }
+}
+
+int run_test()
+{
+    test_ctor_basic();
+    test_ctor_sfinae();
+    return 0;
+}
+} // namespace in_place_type_init_list_args
+} // namespace emplace
+
+namespace status {
+namespace index {
+int run_test()
+{
+    {
+        using V = std::variant<int, long>;
+        constexpr V v;
+        static_assert(v.index() == 0, "");
+    }
+    {
+        using V = std::variant<int, long>;
+        V v;
+        assert(v.index() == 0);
+    }
+    {
+        using V = std::variant<int, long>;
+        constexpr V v(std::in_place_index<1>);
+        static_assert(v.index() == 1, "");
+    }
+    {
+        using V = std::variant<int, std::string>;
+        V v("abc");
+        assert(v.index() == 1);
+        v = 42;
+        assert(v.index() == 0);
+    }
+    return 0;
+}
+} // namespace index
+namespace valueless_by_exception {
+int run_test()
+{
+    {
+        using V = std::variant<int, long>;
+        constexpr V v;
+        static_assert(!v.valueless_by_exception(), "");
+    }
+    {
+        using V = std::variant<int, long>;
+        V v;
+        assert(!v.valueless_by_exception());
+    }
+    {
+        using V = std::variant<int, long, std::string>;
+        const V v("abc");
+        assert(!v.valueless_by_exception());
+    }
+
+    return 0;
+}
+} // namespace valueless_by_exception
+} // namespace status
+
+namespace member_swap {
+struct NotSwappable
+{
+};
+void swap(NotSwappable&, NotSwappable&) = delete;
+
+struct NotCopyable
+{
+    NotCopyable()                   = default;
+    NotCopyable(const NotCopyable&) = delete;
+    NotCopyable& operator=(const NotCopyable&) = delete;
+};
+
+struct NotCopyableWithSwap
+{
+    NotCopyableWithSwap()                           = default;
+    NotCopyableWithSwap(const NotCopyableWithSwap&) = delete;
+    NotCopyableWithSwap& operator=(const NotCopyableWithSwap&) = delete;
+};
+void swap(NotCopyableWithSwap&, NotCopyableWithSwap) {}
+
+struct NotMoveAssignable
+{
+    NotMoveAssignable()                    = default;
+    NotMoveAssignable(NotMoveAssignable&&) = default;
+    NotMoveAssignable& operator=(NotMoveAssignable&&) = delete;
+};
+
+struct NotMoveAssignableWithSwap
+{
+    NotMoveAssignableWithSwap()                            = default;
+    NotMoveAssignableWithSwap(NotMoveAssignableWithSwap&&) = default;
+    NotMoveAssignableWithSwap& operator=(NotMoveAssignableWithSwap&&) = delete;
+};
+void swap(NotMoveAssignableWithSwap&, NotMoveAssignableWithSwap&) noexcept {}
+
+template <bool Throws>
+void do_throw()
+{
+}
+
+template <>
+void do_throw<true>()
+{
+    throw 42;
+}
+
+template <bool NT_Copy, bool NT_Move, bool NT_CopyAssign, bool NT_MoveAssign, bool NT_Swap, bool EnableSwap = true>
+struct NothrowTypeImp
+{
+    static int move_called;
+    static int move_assign_called;
+    static int swap_called;
+    static void reset() { move_called = move_assign_called = swap_called = 0; }
+    NothrowTypeImp() = default;
+    explicit NothrowTypeImp(int v)
+        : value(v) {}
+    NothrowTypeImp(const NothrowTypeImp& o) noexcept(NT_Copy)
+        : value(o.value)
+    {
+        assert(false);
+    } // never called by test
+    NothrowTypeImp(NothrowTypeImp&& o) noexcept(NT_Move)
+        : value(o.value)
+    {
+        ++move_called;
+        do_throw<!NT_Move>();
+        o.value = -1;
+    }
+    NothrowTypeImp& operator=(const NothrowTypeImp&) noexcept(NT_CopyAssign)
+    {
+        assert(false);
+        return *this;
+    } // never called by the tests
+    NothrowTypeImp& operator=(NothrowTypeImp&& o) noexcept(NT_MoveAssign)
+    {
+        ++move_assign_called;
+        do_throw<!NT_MoveAssign>();
+        value   = o.value;
+        o.value = -1;
+        return *this;
+    }
+    int value;
+};
+template <bool NT_Copy, bool NT_Move, bool NT_CopyAssign, bool NT_MoveAssign, bool NT_Swap, bool EnableSwap>
+int NothrowTypeImp<NT_Copy, NT_Move, NT_CopyAssign, NT_MoveAssign, NT_Swap, EnableSwap>::move_called = 0;
+template <bool NT_Copy, bool NT_Move, bool NT_CopyAssign, bool NT_MoveAssign, bool NT_Swap, bool EnableSwap>
+int NothrowTypeImp<NT_Copy, NT_Move, NT_CopyAssign, NT_MoveAssign, NT_Swap, EnableSwap>::move_assign_called = 0;
+template <bool NT_Copy, bool NT_Move, bool NT_CopyAssign, bool NT_MoveAssign, bool NT_Swap, bool EnableSwap>
+int NothrowTypeImp<NT_Copy, NT_Move, NT_CopyAssign, NT_MoveAssign, NT_Swap, EnableSwap>::swap_called = 0;
+
+template <bool NT_Copy, bool NT_Move, bool NT_CopyAssign, bool NT_MoveAssign, bool NT_Swap>
+void swap(NothrowTypeImp<NT_Copy, NT_Move, NT_CopyAssign, NT_MoveAssign, NT_Swap, true>& lhs,
+          NothrowTypeImp<NT_Copy, NT_Move, NT_CopyAssign, NT_MoveAssign, NT_Swap, true>& rhs) noexcept(NT_Swap)
+{
+    lhs.swap_called++;
+    do_throw<!NT_Swap>();
+    int tmp   = lhs.value;
+    lhs.value = rhs.value;
+    rhs.value = tmp;
+}
+
+// throwing copy, nothrow move ctor/assign, no swap provided
+using NothrowMoveable = NothrowTypeImp<false, true, false, true, false, false>;
+// throwing copy and move assign, nothrow move ctor, no swap provided
+using NothrowMoveCtor = NothrowTypeImp<false, true, false, false, false, false>;
+// nothrow move ctor, throwing move assignment, swap provided
+using NothrowMoveCtorWithThrowingSwap =
+    NothrowTypeImp<false, true, false, false, false, true>;
+// throwing move ctor, nothrow move assignment, no swap provided
+using ThrowingMoveCtor =
+    NothrowTypeImp<false, false, false, true, false, false>;
+// throwing special members, nothrowing swap
+using ThrowingTypeWithNothrowSwap =
+    NothrowTypeImp<false, false, false, false, true, true>;
+using NothrowTypeWithThrowingSwap =
+    NothrowTypeImp<true, true, true, true, false, true>;
+// throwing move assign with nothrow move and nothrow swap
+using ThrowingMoveAssignNothrowMoveCtorWithSwap =
+    NothrowTypeImp<false, true, false, false, true, true>;
+// throwing move assign with nothrow move but no swap.
+using ThrowingMoveAssignNothrowMoveCtor =
+    NothrowTypeImp<false, true, false, false, false, false>;
+
+struct NonThrowingNonNoexceptType
+{
+    static int move_called;
+    static void reset() { move_called = 0; }
+    NonThrowingNonNoexceptType() = default;
+    NonThrowingNonNoexceptType(int v)
+        : value(v) {}
+    NonThrowingNonNoexceptType(NonThrowingNonNoexceptType&& o) noexcept(false)
+        : value(o.value)
+    {
+        ++move_called;
+        o.value = -1;
+    }
+    NonThrowingNonNoexceptType&
+    operator=(NonThrowingNonNoexceptType&&) noexcept(false)
+    {
+        assert(false); // never called by the tests.
+        return *this;
+    }
+    int value;
+};
+int NonThrowingNonNoexceptType::move_called = 0;
+
+struct ThrowsOnSecondMove
+{
+    int value;
+    int move_count;
+    ThrowsOnSecondMove(int v)
+        : value(v), move_count(0) {}
+    ThrowsOnSecondMove(ThrowsOnSecondMove&& o) noexcept(false)
+        : value(o.value), move_count(o.move_count + 1)
+    {
+        if (move_count == 2)
+            do_throw<true>();
+        o.value = -1;
+    }
+    ThrowsOnSecondMove& operator=(ThrowsOnSecondMove&&)
+    {
+        assert(false); // not called by test
+        return *this;
+    }
+};
+
+void test_swap_valueless_by_exception()
+{
+}
+
+void test_swap_same_alternative()
+{
+    {
+        using T = ThrowingTypeWithNothrowSwap;
+        using V = std::variant<T, int>;
+        T::reset();
+        V v1(std::in_place_index<0>, 42);
+        V v2(std::in_place_index<0>, 100);
+        v1.swap(v2);
+        assert(T::swap_called == 1);
+        assert(std::get<0>(v1).value == 100);
+        assert(std::get<0>(v2).value == 42);
+        swap(v1, v2);
+        assert(T::swap_called == 2);
+        assert(std::get<0>(v1).value == 42);
+        assert(std::get<0>(v2).value == 100);
+    }
+    {
+        using T = NothrowMoveable;
+        using V = std::variant<T, int>;
+        T::reset();
+        V v1(std::in_place_index<0>, 42);
+        V v2(std::in_place_index<0>, 100);
+        v1.swap(v2);
+        assert(T::swap_called == 0);
+        assert(T::move_called == 1);
+        assert(T::move_assign_called == 2);
+        assert(std::get<0>(v1).value == 100);
+        assert(std::get<0>(v2).value == 42);
+        T::reset();
+        swap(v1, v2);
+        assert(T::swap_called == 0);
+        assert(T::move_called == 1);
+        assert(T::move_assign_called == 2);
+        assert(std::get<0>(v1).value == 42);
+        assert(std::get<0>(v2).value == 100);
+    }
+}
+
+void test_swap_different_alternatives()
+{
+    {
+        using T = NothrowMoveCtorWithThrowingSwap;
+        using V = std::variant<T, int>;
+        T::reset();
+        V v1(std::in_place_index<0>, 42);
+        V v2(std::in_place_index<1>, 100);
+        v1.swap(v2);
+        assert(T::swap_called == 0);
+        // The libc++ implementation double copies the argument, and not
+        // the variant swap is called on.
+        assert(T::move_called != 1);
+        assert(T::move_called <= 2);
+        assert(T::move_assign_called == 0);
+        assert(std::get<1>(v1) == 100);
+        assert(std::get<0>(v2).value == 42);
+        T::reset();
+        swap(v1, v2);
+        assert(T::swap_called == 0);
+        assert(T::move_called != 2);
+        assert(T::move_called <= 2);
+        assert(T::move_assign_called == 0);
+        assert(std::get<0>(v1).value == 42);
+        assert(std::get<1>(v2) == 100);
+    }
+}
+
+template <class Var>
+constexpr auto has_swap_member_imp(int)
+    -> decltype(std::declval<Var&>().swap(std::declval<Var&>()), true)
+{
+    return true;
+}
+
+template <class Var>
+constexpr auto has_swap_member_imp(long) -> bool
+{
+    return false;
+}
+
+template <class Var>
+constexpr bool has_swap_member()
+{
+    return has_swap_member_imp<Var>(0);
+}
+using std::swap;
+template <typename T>
+struct is_swappable2
+{
+private:
+    template <typename U,
+              typename = decltype(swap(std::declval<U&>(),
+                                       std::declval<U&>()))>
+    inline static std::true_type test(int);
+
+    template <typename U>
+    inline static std::false_type test(...);
+
+public:
+    static constexpr bool value = decltype(test<T>(0))::value;
+};
+
+void test_swap_sfinae()
+{
+    {
+        using V = std::variant<int, NotSwappable>;
+        LIBCPP_STATIC_ASSERT(!has_swap_member<V>(), "");
+        static_assert(std::is_swappable_v<V>, "");
+    }
+#if STD_HAS_CXX17
+    {
+        using V = std::variant<int, NotCopyable>;
+        LIBCPP_STATIC_ASSERT(!has_swap_member<V>(), "");
+
+        static_assert(!std::is_swappable_v<V>, "");
+    }
+    {
+        using V = std::variant<int, NotCopyableWithSwap>;
+        LIBCPP_STATIC_ASSERT(!has_swap_member<V>(), "");
+        static_assert(!std::is_swappable_v<V>, "");
+    }
+    {
+        using V = std::variant<int, NotMoveAssignable>;
+        LIBCPP_STATIC_ASSERT(!has_swap_member<V>(), "");
+        static_assert(!std::is_swappable_v<V>, "");
+    }
+#endif
+}
+
+void test_swap_noexcept()
+{
+    {
+        using V = std::variant<int, NothrowMoveable>;
+        static_assert(std::is_swappable_v<V> && has_swap_member<V>(), "");
+        static_assert(std::is_nothrow_swappable_v<V>, "");
+        V v1, v2;
+        v1.swap(v2);
+        swap(v1, v2);
+    }
+    {
+        using V = std::variant<int, NothrowMoveCtor>;
+        static_assert(std::is_swappable_v<V> && has_swap_member<V>(), "");
+        static_assert(!std::is_nothrow_swappable_v<V>, "");
+        V v1, v2;
+        v1.swap(v2);
+        swap(v1, v2);
+    }
+    {
+        using V = std::variant<int, ThrowingTypeWithNothrowSwap>;
+        static_assert(std::is_swappable_v<V> && has_swap_member<V>(), "");
+        static_assert(!std::is_nothrow_swappable_v<V>, "");
+        // instantiate swap
+        V v1, v2;
+        v1.swap(v2);
+        swap(v1, v2);
+    }
+    {
+        using V = std::variant<int, ThrowingMoveAssignNothrowMoveCtor>;
+        static_assert(std::is_swappable_v<V> && has_swap_member<V>(), "");
+        static_assert(!std::is_nothrow_swappable_v<V>, "");
+        // instantiate swap
+        V v1, v2;
+        v1.swap(v2);
+        swap(v1, v2);
+    }
+    {
+        using V = std::variant<int, ThrowingMoveAssignNothrowMoveCtorWithSwap>;
+        static_assert(std::is_swappable_v<V> && has_swap_member<V>(), "");
+
+        static_assert(std::is_nothrow_swappable_v<V>, "");
+
+        // instantiate swap
+        V v1, v2;
+        v1.swap(v2);
+        swap(v1, v2);
+    }
+    {
+        using V = std::variant<int, NotMoveAssignableWithSwap>;
+
+        static_assert(std::is_swappable_v<V> && has_swap_member<V>(), "");
+        static_assert(std::is_nothrow_swappable_v<V>, "");
+        // instantiate swap
+        V v1, v2;
+        v1.swap(v2);
+        swap(v1, v2);
+    }
+    {
+        // This variant type does not provide either a member or non-member swap
+        // but is still swappable via the generic swap algorithm, since the
+        // variant is move constructible and move assignable.
+        using V = std::variant<int, NotSwappable>;
+        LIBCPP_STATIC_ASSERT(!has_swap_member<V>(), "");
+        static_assert(std::is_swappable_v<V>, "");
+        static_assert(std::is_nothrow_swappable_v<V>, "");
+        V v1, v2;
+        swap(v1, v2);
+    }
+}
+
+int run_test()
+{
+    test_swap_valueless_by_exception();
+    test_swap_same_alternative();
+    test_swap_different_alternatives();
+    test_swap_sfinae();
+    test_swap_noexcept();
+
+    return 0;
+}
+} // namespace member_swap
+
+namespace visit {
+namespace robust_against_adl {
+struct PrintVisitor1
+{
+    void operator()(int i)
+    {
+    }
+    void operator()(double f)
+    {
+    }
+    void operator()(const std::string& s)
+    {
+    }
+};
+
+bool test(bool do_it)
+{
+    std::variant<int, double, std::string> var1(1.1);
+    std::visit(PrintVisitor1{}, var1);
+    return true;
+}
+
+int run_test()
+{
+    test(true);
+    return 0;
+}
+}
+} // namespace visit::robust_against_adl
 
 int run_all_test()
 {
+    auto time1 = std::chrono::system_clock::now().time_since_epoch().count();
     bad_variant_access::run_test();
+
     get_if::index::run_test();
     get_if::type::run_test();
+
     get::index::run_test();
     get::type::run_test();
+
     holds_alternative::run_test();
+
     hash::run_test();
+
     helpers::variant_alternative::run_test();
     helpers::variant_size::run_test();
+
     monostate::properties::run_test();
     monostate::relops::run_test();
+
     relops::run_test();
+
     npos::run_test();
+
     assign::conv::run_test();
     assign::copy::run_test();
     assign::move::run_test();
     assign::T::run_test();
+
     ctor::conv::run_test();
     ctor::copy::run_test();
     ctor::default_ctor::run_test();
@@ -3134,12 +3763,24 @@ int run_all_test()
     ctor::in_place_type_init_list_args::run_test();
     ctor::move::run_test();
     ctor::T::run_test();
+
     dtor::run_test();
 
     emplace::index::run_test();
     emplace::index_init_list_args::run_test();
+    emplace::type_args::run_test();
+    emplace::in_place_type_init_list_args::run_test();
 
-    
+    status::index::run_test();
+    status::valueless_by_exception::run_test();
+
+    member_swap::run_test();
+
+    visit::robust_against_adl::run_test();
+
+    auto time2 = std::chrono::system_clock::now().time_since_epoch().count();
+    auto time  = time2 - time1;
+    printf("%lld us\n", time);
     return 0;
 }
 

@@ -146,15 +146,15 @@ private:
 };
 
 // 通用的随机访问读写迭代器模板
-template <class T, class Container, bool IsConst>
+template <class T, bool IsConst>
 class RandomIterator : public IteratorBase<std::conditional_t<IsConst,
-                                                              ConstIteratorTraits<RandomIterator<T, Container, IsConst>, T, std::random_access_iterator_tag>,
-                                                              IteratorTraits<RandomIterator<T, Container, IsConst>, T, std::random_access_iterator_tag>>>
+                                                              ConstIteratorTraits<RandomIterator<T, IsConst>, T, std::random_access_iterator_tag>,
+                                                              IteratorTraits<RandomIterator<T, IsConst>, T, std::random_access_iterator_tag>>>
 {
 public:
     using base_type         = IteratorBase<std::conditional_t<IsConst,
-                                                      ConstIteratorTraits<RandomIterator<T, Container, IsConst>, T, std::random_access_iterator_tag>,
-                                                      IteratorTraits<RandomIterator<T, Container, IsConst>, T, std::random_access_iterator_tag>>>;
+                                                      ConstIteratorTraits<RandomIterator<T, IsConst>, T, std::random_access_iterator_tag>,
+                                                      IteratorTraits<RandomIterator<T, IsConst>, T, std::random_access_iterator_tag>>>;
     using derived_type      = typename base_type::derived_type;
     using value_type        = typename base_type::value_type;
     using size_type         = typename base_type::size_type;
@@ -167,96 +167,118 @@ public:
 
 #ifndef NDEBUG
     constexpr RandomIterator() noexcept
-        : m_iter(nullptr), m_cont(nullptr)
+        : m_data(nullptr), m_size(0), m_offset(0)
     {
     }
 
-    constexpr explicit RandomIterator(pointer iter, Container* cont) noexcept
-        : m_iter(iter), m_cont(cont) {}
+    constexpr explicit RandomIterator(pointer data, size_t size, size_t offset) noexcept
+        : m_data(data), m_size(size), m_offset(offset) {}
 
-    constexpr RandomIterator(const RandomIterator<T, Container, true>& iter) noexcept
-        : m_iter(iter.m_iter), m_cont(iter.m_cont) {}
+    constexpr RandomIterator(const RandomIterator<T, true>& iter) noexcept
+        : m_data(iter.m_data), m_size(iter.m_size), m_offset(iter.m_offset) {}
 
-    constexpr RandomIterator& operator=(const const RandomIterator<T, Container, true>& iter) noexcept
+    constexpr RandomIterator& operator=(const const RandomIterator<T, true>& iter) noexcept
     {
-        m_iter = iter.m_iter;
-        m_cont = iter.m_cont;
+        m_data   = iter.m_data;
+        m_size   = iter.m_size;
+        m_offset = iter.m_offset;
         return *this;
     }
 #else
     constexpr RandomIterator() noexcept
-        : m_iter(nullptr)
+        : m_data(nullptr)
     {
     }
-    constexpr explicit RandomIterator(pointer iter) noexcept
-        : m_iter(iter) {}
+    constexpr explicit RandomIterator(pointer data) noexcept
+        : m_data(data) {}
 
-    constexpr RandomIterator(const RandomIterator<T, Container, true>& iter) noexcept
-        : m_iter(iter.m_iter) {}
+    constexpr RandomIterator(const RandomIterator<T, true>& iter) noexcept
+        : m_data(iter.m_data) {}
 
-    constexpr RandomIterator& operator=(const const RandomIterator<T, Container, true>& iter) noexcept
+    constexpr RandomIterator& operator=(const const RandomIterator<T, true>& iter) noexcept
     {
-        m_iter = iter.m_iter;
+        m_data = iter.m_data;
         return *this;
     }
 #endif
     DECL_NODISCARD constexpr pointer Unwrapped() noexcept
     {
-        return m_iter;
+        return m_data;
     }
 
     DECL_NODISCARD constexpr reference Dereference() const noexcept
     {
-        return *m_iter;
+#ifndef NDEBUG
+        ASSERT(m_data != nullptr, "Iterator not initialized");
+        ASSERT(m_offset < m_size, "Iterator is last");
+#endif
+        return *m_data;
     }
 
     constexpr void Increment(const difference_type n) noexcept
     {
 #ifndef NDEBUG
-        ASSERT(m_iter + n <= m_cont->end().m_iter, "Iterator out of bounds");
+        ASSERT(m_data != nullptr, "Iterator not initialized");
+        if (n > 0)
+        {
+            ASSERT(m_size - m_offset >= n, "Iterator out of bounds");
+        }
+        else
+        {
+            ASSERT(m_offset >= -n, "Iterator out of bounds");
+        }
+        m_offset += n;
 #endif
-        m_iter += n;
+        m_data += n;
     }
 
     constexpr void Decrement(const difference_type n) noexcept
     {
 #ifndef NDEBUG
-        ASSERT(m_iter - n >= m_cont->begin().m_iter, "Iterator out of bounds");
+        ASSERT(m_data != nullptr, "Iterator not initialized");
+
+        if (n > 0)
+        {
+            ASSERT(m_offset >= n, "Iterator out of bounds");
+        }
+        else
+        {
+            ASSERT(m_size - m_offset >= -n, "Iterator out of bounds");
+        }
+        m_offset -= n;
 #endif
-        m_iter -= n;
+        m_data -= n;
     }
 
     DECL_NODISCARD constexpr bool Equals(const RandomIterator& r) const noexcept
     {
 #ifndef NDEBUG
-        ASSERT(m_cont != nullptr, "m_cont is nullptr");
-        ASSERT(m_cont == r.m_cont, "Iterators incompatible");
+        ASSERT(m_data == r.m_data && m_size == r.m_size, "Iterators incompatible");
 #endif
-        return m_iter == r.m_iter;
+        return m_data == r.m_data;
     }
 
     DECL_NODISCARD constexpr bool LessThan(const RandomIterator& r) const noexcept
     {
 #ifndef NDEBUG
-        ASSERT(m_cont != nullptr, "m_cont is nullptr");
-        ASSERT(m_cont == r.m_cont, "Iterators incompatible");
+        ASSERT(m_data == r.m_data && m_size == r.m_size, "Iterators incompatible");
 #endif
-        return m_iter < r.m_iter;
+        return m_data < r.m_data;
     };
 
-    DECL_NODISCARD constexpr difference_type Distance(const RandomIterator& l) const noexcept
+    DECL_NODISCARD constexpr difference_type Distance(const RandomIterator& r) const noexcept
     {
 #ifndef NDEBUG
-        ASSERT(m_cont != nullptr, "m_cont is nullptr");
-        ASSERT(m_cont == l.m_cont, "Iterators incompatible");
+        ASSERT(m_data == r.m_data && m_size == r.m_size, "Iterators incompatible");
 #endif
-        return m_iter - l.m_iter;
+        return m_data - r.m_data;
     }
 
 private:
-    pointer m_iter;
+    pointer m_data;
 #ifndef NDEBUG
-    Container* m_cont;
+    size_t m_size = 0;
+    size_t m_offset;
 #endif
 };
 } // namespace screw

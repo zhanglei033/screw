@@ -21,22 +21,39 @@
   <ItemGroup>
     <ClInclude Include="..\..\src\base\Assert.h" />
     <ClInclude Include="..\..\src\base\CommonAlgorithms.h" />
+    <ClInclude Include="..\..\src\base\IteratorBase.h" />
     <ClInclude Include="..\..\src\base\Platform.h" />
     <ClInclude Include="..\..\src\base\STL.h" />
     <ClInclude Include="..\..\src\base\StringView.h" />
     <ClInclude Include="..\..\src\base\TypesDef.h" />
     <ClInclude Include="..\..\src\base\Variant.h" />
+    <ClInclude Include="..\..\src\googletest\gtest\gtest-assertion-result.h" />
+    <ClInclude Include="..\..\src\googletest\gtest\gtest-death-test.h" />
+    <ClInclude Include="..\..\src\googletest\gtest\gtest-matchers.h" />
+    <ClInclude Include="..\..\src\googletest\gtest\gtest-message.h" />
+    <ClInclude Include="..\..\src\googletest\gtest\gtest-param-test.h" />
+    <ClInclude Include="..\..\src\googletest\gtest\gtest-printers.h" />
+    <ClInclude Include="..\..\src\googletest\gtest\gtest-spi.h" />
+    <ClInclude Include="..\..\src\googletest\gtest\gtest-test-part.h" />
+    <ClInclude Include="..\..\src\googletest\gtest\gtest-typed-test.h" />
+    <ClInclude Include="..\..\src\googletest\gtest\gtest.h" />
+    <ClInclude Include="..\..\src\googletest\gtest\gtest_pred_impl.h" />
+    <ClInclude Include="..\..\src\googletest\gtest\gtest_prod.h" />
     <ClInclude Include="..\..\src\reflection\Comparison.h" />
+    <ClInclude Include="..\..\src\reflection\Registration.h" />
     <ClInclude Include="..\..\src\reflection\RuntimeTypeData.h" />
     <ClInclude Include="..\..\src\reflection\RuntimeTypeInfo.h" />
-    <ClInclude Include="..\..\src\test\VariantTest.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\reflection\RuntimeTypeInfo.cpp" />
     <ClCompile Include="..\..\src\reflection\test.cpp" />
-    <ClCompile Include="..\..\src\test\VariantTest.cpp">
+    <ClCompile Include="..\..\src\test\StringViewTest.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="..\..\src\test\VariantTest.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
@@ -92,9 +109,21 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <IncludePath>$(SolutionDir)..\src;$(IncludePath)</IncludePath>
+    <OutDir>$(SolutionDir)..\bin\windows\$(PlatformShortName)\$(Configuration)\</OutDir>
+    <IntDir>$(OutDir)objs\$(ProjectName)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <IncludePath>$(SolutionDir)..\src;$(IncludePath)</IncludePath>
+    <OutDir>$(SolutionDir)..\bin\windows\$(PlatformShortName)\$(Configuration)\</OutDir>
+    <IntDir>$(OutDir)objs\$(ProjectName)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <OutDir>$(SolutionDir)..\bin\windows\$(PlatformShortName)\$(Configuration)\</OutDir>
+    <IntDir>$(OutDir)objs\$(ProjectName)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <OutDir>$(SolutionDir)..\bin\windows\$(PlatformShortName)\$(Configuration)\</OutDir>
+    <IntDir>$(OutDir)objs\$(ProjectName)\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -102,10 +131,14 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp14</LanguageStandard>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\src;$(SolutionDir)..\src\googletest</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>gtest.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(OutDir)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -116,12 +149,16 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp14</LanguageStandard>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\src;$(SolutionDir)..\src\googletest</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>gtest.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(OutDir)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -131,11 +168,13 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp14</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\src</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\src;$(SolutionDir)..\src\googletest</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>gtest.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(OutDir)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -146,12 +185,16 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp14</LanguageStandard>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\src;$(SolutionDir)..\src\googletest</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>gtest.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(OutDir)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

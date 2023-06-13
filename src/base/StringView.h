@@ -29,7 +29,7 @@ public:
     using const_pointer          = const Elem*;
     using reference              = Elem&;
     using const_reference        = const Elem&;
-    using const_iterator         = screw::RandomIterator<Elem, basic_string_view<Elem, Traits>, true>;
+    using const_iterator         = screw::RandomIterator<Elem, true>;
     using iterator               = const_iterator;
     using const_reverse_iterator = std::reverse_iterator<const_iterator>;
     using reverse_iterator       = const_reverse_iterator;
@@ -72,7 +72,7 @@ public:
     DECL_NODISCARD DECL_CONSTEXPR11 const_iterator begin() const DECL_NOEXCEPT
     {
 #ifndef NDEBUG
-        return const_iterator(m_data, this);
+        return const_iterator(m_data, m_size, 0);
 #else
         return const_iterator(m_data);
 #endif
@@ -81,9 +81,9 @@ public:
     DECL_NODISCARD DECL_CONSTEXPR11 const_iterator end() const DECL_NOEXCEPT
     {
 #ifndef NDEBUG
-        return const_iterator(m_data + m_size, this);
+        return const_iterator(m_data, m_size, m_size);
 #else
-        return const_iterator(m_data + m_size);
+        return const_iterator(m_data);
 #endif
     }
 

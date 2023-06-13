@@ -1,10 +1,17 @@
 #include "base/STL.h"
 #include "base/StringView.h"
 #include "base/Variant.h"
-#include "test/VariantTest.h"
+#include "googletest/gtest/gtest.h"
 #include <cassert>
 int main()
 {
-    VariantTest::run_all_test();
+    testing::InitGoogleTest();
+    try
+    {
+        RUN_ALL_TESTS();
+    } catch (const std::exception& ex)
+    {
+        std::cout << ex.what() << std::endl;
+    }
     return 0;
 }

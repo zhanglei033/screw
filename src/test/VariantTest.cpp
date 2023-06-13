@@ -1,9 +1,10 @@
-#include <functional>
 #include "base/Variant.h"
-#include "test/VariantTest.h"
+#include "googletest/gtest/gtest.h"
+
 #include <cassert>
 #include <chrono>
 #include <exception>
+#include <functional>
 #include <string>
 #include <type_traits>
 #define ASSERT_NOT_NOEXCEPT(v)          static_assert(!noexcept(v), "must be not noexcept");
@@ -11,23 +12,18 @@
 #define ASSERT_SAME_TYPE(t1, t2)        static_assert(std::is_same_v<t1, t2>, "must be same type");
 #define LIBCPP_STATIC_ASSERT(expr, msg) static_assert(!expr, msg)
 
-namespace VariantTest {
+#define TestAssert(expr)                EXPECT_EQ(expr, true);
 
-namespace bad_variant_access {
-int run_test()
+TEST(variant_test, bad_variant_access)
 {
     static_assert(std::is_base_of<std::exception, std::bad_variant_access>::value, "");
     static_assert(noexcept(std::bad_variant_access{}), "must be noexcept");
     static_assert(noexcept(std::bad_variant_access{}.what()), "must be noexcept");
     std::bad_variant_access ex;
-    assert(ex.what());
-    return 0;
+    EXPECT_EQ(ex.what() != nullptr, true);
 }
-} // namespace bad_variant_access
 
-namespace get_if {
-namespace index {
-void test_const_get_if()
+TEST(variant_test, test_const_get_if_index)
 {
     {
         using V              = std::variant<int>;
@@ -45,48 +41,37 @@ void test_const_get_if()
     {
         using V = std::variant<int, const long>;
         constexpr V v(42l);
-
         static_assert(std::is_same_v<decltype(std::get_if<1>(&v)), const long*>, "must be same type");
-
         static_assert(*std::get_if<1>(&v) == 42, "");
         static_assert(std::get_if<0>(&v) == nullptr, "");
     }
 }
 
-void test_get_if()
+TEST(variant_test, test_get_if_index)
 {
     {
         using V = std::variant<int>;
         V* v    = nullptr;
-        assert(std::get_if<0>(v) == nullptr);
+        TestAssert(std::get_if<0>(v) == nullptr);
     }
     {
         using V = std::variant<int, long>;
         V v(42);
         ASSERT_NOEXCEPT(std::get_if<0>(&v));
         ASSERT_SAME_TYPE(decltype(std::get_if<0>(&v)), int*);
-        assert(*std::get_if<0>(&v) == 42);
-        assert(std::get_if<1>(&v) == nullptr);
+        TestAssert(*std::get_if<0>(&v) == 42);
+        TestAssert(std::get_if<1>(&v) == nullptr);
     }
     {
         using V = std::variant<int, const long>;
         V v(42l);
         ASSERT_SAME_TYPE(decltype(std::get_if<1>(&v)), const long*);
-        assert(*std::get_if<1>(&v) == 42);
-        assert(std::get_if<0>(&v) == nullptr);
+        TestAssert(*std::get_if<1>(&v) == 42);
+        TestAssert(std::get_if<0>(&v) == nullptr);
     }
 }
 
-int run_test()
-{
-    test_const_get_if();
-    test_get_if();
-    return 0;
-}
-} // namespace index
-
-namespace type {
-void test_const_get_if()
+TEST(variant_test, test_const_get_if_type)
 {
     {
         using V              = std::variant<int>;
@@ -110,44 +95,31 @@ void test_const_get_if()
     }
 }
 
-void test_get_if()
+TEST(variant_test, test_get_if_type)
 {
     {
         using V = std::variant<int>;
         V* v    = nullptr;
-        assert(std::get_if<int>(v) == nullptr);
+        TestAssert(std::get_if<int>(v) == nullptr);
     }
     {
         using V = std::variant<int, const long>;
         V v(42);
         ASSERT_NOEXCEPT(std::get_if<int>(&v));
         ASSERT_SAME_TYPE(decltype(std::get_if<int>(&v)), int*);
-        assert(*std::get_if<int>(&v) == 42);
-        assert(std::get_if<const long>(&v) == nullptr);
+        TestAssert(*std::get_if<int>(&v) == 42);
+        TestAssert(std::get_if<const long>(&v) == nullptr);
     }
     {
         using V = std::variant<int, const long>;
         V v(42l);
         ASSERT_SAME_TYPE(decltype(std::get_if<const long>(&v)), const long*);
-        assert(*std::get_if<const long>(&v) == 42);
-        assert(std::get_if<int>(&v) == nullptr);
+        TestAssert(*std::get_if<const long>(&v) == 42);
+        TestAssert(std::get_if<int>(&v) == nullptr);
     }
 }
 
-int run_test()
-{
-    test_const_get_if();
-    test_get_if();
-
-    return 0;
-}
-} // namespace type
-
-} // namespace get_if
-
-namespace get {
-namespace index {
-void test_const_lvalue_get()
+TEST(variant_test, test_const_lvalue_get_index)
 {
     {
         using V = std::variant<int, const long>;
@@ -161,7 +133,7 @@ void test_const_lvalue_get()
         const V v(42);
         ASSERT_NOT_NOEXCEPT(std::get<0>(v));
         ASSERT_SAME_TYPE(decltype(std::get<0>(v)), const int&);
-        assert(std::get<0>(v) == 42);
+        TestAssert(std::get<0>(v) == 42);
     }
     {
         using V = std::variant<int, const long>;
@@ -175,74 +147,62 @@ void test_const_lvalue_get()
         const V v(42l);
         ASSERT_NOT_NOEXCEPT(std::get<1>(v));
         ASSERT_SAME_TYPE(decltype(std::get<1>(v)), const long&);
-        assert(std::get<1>(v) == 42);
+        TestAssert(std::get<1>(v) == 42);
     }
 }
 
-void test_lvalue_get()
+TEST(variant_test, test_lvalue_get_index)
 {
     {
         using V = std::variant<int, const long>;
         V v(42);
         ASSERT_NOT_NOEXCEPT(std::get<0>(v));
         ASSERT_SAME_TYPE(decltype(std::get<0>(v)), int&);
-        assert(std::get<0>(v) == 42);
+        TestAssert(std::get<0>(v) == 42);
     }
     {
         using V = std::variant<int, const long>;
         V v(42l);
         ASSERT_SAME_TYPE(decltype(std::get<1>(v)), const long&);
-        assert(std::get<1>(v) == 42);
+        TestAssert(std::get<1>(v) == 42);
     }
 }
 
-void test_rvalue_get()
+TEST(variant_test, test_rvalue_get_index)
 {
     {
         using V = std::variant<int, const long>;
         V v(42);
         ASSERT_NOT_NOEXCEPT(std::get<0>(std::move(v)));
         ASSERT_SAME_TYPE(decltype(std::get<0>(std::move(v))), int&&);
-        assert(std::get<0>(std::move(v)) == 42);
+        TestAssert(std::get<0>(std::move(v)) == 42);
     }
     {
         using V = std::variant<int, const long>;
         V v(42l);
         ASSERT_SAME_TYPE(decltype(std::get<1>(std::move(v))), const long&&);
-        assert(std::get<1>(std::move(v)) == 42);
+        TestAssert(std::get<1>(std::move(v)) == 42);
     }
 }
 
-void test_const_rvalue_get()
+TEST(variant_test, test_const_rvalue_get_index)
 {
     {
         using V = std::variant<int, const long>;
         const V v(42);
         ASSERT_NOT_NOEXCEPT(std::get<0>(std::move(v)));
         ASSERT_SAME_TYPE(decltype(std::get<0>(std::move(v))), const int&&);
-        assert(std::get<0>(std::move(v)) == 42);
+        TestAssert(std::get<0>(std::move(v)) == 42);
     }
     {
         using V = std::variant<int, const long>;
         const V v(42l);
         ASSERT_SAME_TYPE(decltype(std::get<1>(std::move(v))), const long&&);
-        assert(std::get<1>(std::move(v)) == 42);
+        TestAssert(std::get<1>(std::move(v)) == 42);
     }
 }
 
-int run_test()
-{
-    test_const_lvalue_get();
-    test_lvalue_get();
-    test_rvalue_get();
-    test_const_rvalue_get();
-
-    return 0;
-}
-} // namespace index
-
-namespace type {
-void test_const_lvalue_get()
+TEST(variant_test, test_const_lvalue_get_type)
 {
     {
         using V = std::variant<int, const long>;
@@ -256,7 +216,7 @@ void test_const_lvalue_get()
         const V v(42);
         ASSERT_NOT_NOEXCEPT(std::get<int>(v));
         ASSERT_SAME_TYPE(decltype(std::get<int>(v)), const int&);
-        assert(std::get<int>(v) == 42);
+        TestAssert(std::get<int>(v) == 42);
     }
     {
         using V = std::variant<int, const long>;
@@ -270,77 +230,62 @@ void test_const_lvalue_get()
         const V v(42l);
         ASSERT_NOT_NOEXCEPT(std::get<const long>(v));
         ASSERT_SAME_TYPE(decltype(std::get<const long>(v)), const long&);
-        assert(std::get<const long>(v) == 42);
+        TestAssert(std::get<const long>(v) == 42);
     }
 }
 
-void test_lvalue_get()
+TEST(variant_test, test_lvalue_get_type)
 {
     {
         using V = std::variant<int, const long>;
         V v(42);
         ASSERT_NOT_NOEXCEPT(std::get<int>(v));
         ASSERT_SAME_TYPE(decltype(std::get<int>(v)), int&);
-        assert(std::get<int>(v) == 42);
+        TestAssert(std::get<int>(v) == 42);
     }
     {
         using V = std::variant<int, const long>;
         V v(42l);
         ASSERT_SAME_TYPE(decltype(std::get<const long>(v)), const long&);
-        assert(std::get<const long>(v) == 42);
+        TestAssert(std::get<const long>(v) == 42);
     }
 }
-
-void test_rvalue_get()
+TEST(variant_test, test_rvalue_get_type)
 {
     {
         using V = std::variant<int, const long>;
         V v(42);
         ASSERT_NOT_NOEXCEPT(std::get<int>(std::move(v)));
         ASSERT_SAME_TYPE(decltype(std::get<int>(std::move(v))), int&&);
-        assert(std::get<int>(std::move(v)) == 42);
+        TestAssert(std::get<int>(std::move(v)) == 42);
     }
     {
         using V = std::variant<int, const long>;
         V v(42l);
         ASSERT_SAME_TYPE(decltype(std::get<const long>(std::move(v))),
                          const long&&);
-        assert(std::get<const long>(std::move(v)) == 42);
+        TestAssert(std::get<const long>(std::move(v)) == 42);
     }
 }
-
-void test_const_rvalue_get()
+TEST(variant_test, test_const_rvalue_get_type)
 {
     {
         using V = std::variant<int, const long>;
         const V v(42);
         ASSERT_NOT_NOEXCEPT(std::get<int>(std::move(v)));
         ASSERT_SAME_TYPE(decltype(std::get<int>(std::move(v))), const int&&);
-        assert(std::get<int>(std::move(v)) == 42);
+        TestAssert(std::get<int>(std::move(v)) == 42);
     }
     {
         using V = std::variant<int, const long>;
         const V v(42l);
         ASSERT_SAME_TYPE(decltype(std::get<const long>(std::move(v))),
                          const long&&);
-        assert(std::get<const long>(std::move(v)) == 42);
+        TestAssert(std::get<const long>(std::move(v)) == 42);
     }
 }
 
-int run_test()
-{
-    test_const_lvalue_get();
-    test_lvalue_get();
-    test_rvalue_get();
-    test_const_rvalue_get();
-
-    return 0;
-}
-} // namespace type
-} // namespace get
-
-namespace holds_alternative {
-int run_test()
+TEST(variant_test, test_holds_alternative)
 {
     {
         using V = std::variant<int>;
@@ -358,13 +303,9 @@ int run_test()
         const V v;
         ASSERT_NOEXCEPT(std::holds_alternative<int>(v));
     }
-
-    return 0;
 }
-} // namespace holds_alternative
 
-namespace hash {
-void test_hash_variant()
+TEST(variant_test, test_hash_variant)
 {
     {
         using V = std::variant<int, long, int>;
@@ -373,9 +314,9 @@ void test_hash_variant()
         const V v_copy = v;
         V v2(std::in_place_index<0>, 100);
         const H h{};
-        assert(h(v) == h(v));
-        assert(h(v) != h(v2));
-        assert(h(v) == h(v_copy));
+        TestAssert(h(v) == h(v));
+        TestAssert(h(v) != h(v2));
+        TestAssert(h(v) == h(v_copy));
         {
             ASSERT_SAME_TYPE(decltype(h(v)), std::size_t);
             static_assert(std::is_copy_constructible<H>::value, "");
@@ -394,60 +335,52 @@ void test_hash_variant()
         V v3(str);
         V v3_other("not hello");
         const H h{};
-        assert(h(v0) == h(v0));
-        assert(h(v0) == h(v0_other));
-        assert(h(v1) == h(v1));
-        assert(h(v1) != h(v1_other));
-        assert(h(v2) == h(v2));
-        assert(h(v2) != h(v2_other));
-        assert(h(v3) == h(v3));
-        assert(h(v3) != h(v3_other));
-        assert(h(v0) != h(v1));
-        assert(h(v0) != h(v2));
-        assert(h(v0) != h(v3));
-        assert(h(v1) != h(v2));
-        assert(h(v1) != h(v3));
-        assert(h(v2) != h(v3));
+        TestAssert(h(v0) == h(v0));
+        TestAssert(h(v0) == h(v0_other));
+        TestAssert(h(v1) == h(v1));
+        TestAssert(h(v1) != h(v1_other));
+        TestAssert(h(v2) == h(v2));
+        TestAssert(h(v2) != h(v2_other));
+        TestAssert(h(v3) == h(v3));
+        TestAssert(h(v3) != h(v3_other));
+        TestAssert(h(v0) != h(v1));
+        TestAssert(h(v0) != h(v2));
+        TestAssert(h(v0) != h(v3));
+        TestAssert(h(v1) != h(v2));
+        TestAssert(h(v1) != h(v3));
+        TestAssert(h(v2) != h(v3));
     }
 }
-void test_hash_monostate()
+
+TEST(variant_test, test_hash_monostate)
 {
     using H = std::hash<std::monostate>;
     const H h{};
     std::monostate m1{};
     const std::monostate m2{};
-    assert(h(m1) == h(m1));
-    assert(h(m2) == h(m2));
-    assert(h(m1) == h(m2));
+    TestAssert(h(m1) == h(m1));
+    TestAssert(h(m2) == h(m2));
+    TestAssert(h(m1) == h(m2));
     {
         ASSERT_SAME_TYPE(decltype(h(m1)), std::size_t);
         ASSERT_NOEXCEPT(h(m1));
         static_assert(std::is_copy_constructible<H>::value, "");
     }
 }
-void test_hash_variant_duplicate_elements()
+
+TEST(variant_test, test_hash_variant_duplicate_elements)
 {
     using V = std::variant<std::monostate, std::monostate>;
     using H = std::hash<V>;
     H h{};
     const V v1(std::in_place_index<0>);
     const V v2(std::in_place_index<1>);
-    assert(h(v1) == h(v1));
-    assert(h(v2) == h(v2));
+    TestAssert(h(v1) == h(v1));
+    TestAssert(h(v2) == h(v2));
 }
-int run_test()
-{
-    test_hash_variant();
-    test_hash_monostate();
-    test_hash_variant_duplicate_elements();
-    return 0;
-}
-} // namespace hash
 
-namespace helpers {
-namespace variant_alternative {
 template <class V, size_t I, class E>
-void test()
+void test_helpers_variant_alternative_impl()
 {
     static_assert(std::is_same_v<typename std::variant_alternative<I, V>::type, E>, "");
     static_assert(std::is_same_v<typename std::variant_alternative<I, const V>::type, const E>, "");
@@ -458,22 +391,18 @@ void test()
     static_assert(std::is_same_v<std::variant_alternative_t<I, volatile V>, volatile E>, "");
     static_assert(std::is_same_v<std::variant_alternative_t<I, const volatile V>, const volatile E>, "");
 }
-int run_test()
-{
-    {
-        using V = std::variant<int, void*, const void*, long double>;
-        test<V, 0, int>();
-        test<V, 1, void*>();
-        test<V, 2, const void*>();
-        test<V, 3, long double>();
-    }
-    return 0;
-}
-} // namespace variant_alternative
 
-namespace variant_size {
+TEST(variant_test, test_helpers_variant_alternative)
+{
+    using V = std::variant<int, void*, const void*, long double>;
+    test_helpers_variant_alternative_impl<V, 0, int>();
+    test_helpers_variant_alternative_impl<V, 1, void*>();
+    test_helpers_variant_alternative_impl<V, 2, const void*>();
+    test_helpers_variant_alternative_impl<V, 3, long double>();
+}
+
 template <class V, size_t E>
-void test()
+void test_helpers_variant_size_impl()
 {
     static_assert(std::variant_size<V>::value == E, "");
     static_assert(std::variant_size<const V>::value == E, "");
@@ -485,20 +414,14 @@ void test()
     static_assert(std::variant_size_v<const volatile V> == E, "");
     static_assert(std::is_base_of<std::integral_constant<std::size_t, E>, std::variant_size<V>>::value, "");
 };
-int run_test()
+TEST(variant_test, test_helpers_variant_size)
 {
-    test<std::variant<>, 0>();
-    test<std::variant<void*>, 1>();
-    test<std::variant<long, long, void*, double>, 4>();
-
-    return 0;
+    test_helpers_variant_size_impl<std::variant<>, 0>();
+    test_helpers_variant_size_impl<std::variant<void*>, 1>();
+    test_helpers_variant_size_impl<std::variant<long, long, void*, double>, 4>();
 }
-} // namespace variant_size
-} // namespace helpers
 
-namespace monostate {
-namespace properties {
-int run_test()
+TEST(variant_test, test_monostate_properties)
 {
     using M = std::monostate;
     static_assert(std::is_trivially_default_constructible<M>::value, "");
@@ -507,12 +430,9 @@ int run_test()
     static_assert(std::is_trivially_destructible<M>::value, "");
     constexpr M m{};
     ((void)m);
-
-    return 0;
 }
-} // namespace properties
-namespace relops {
-int run_test()
+
+TEST(variant_test, test_monostate_relops)
 {
     using M = std::monostate;
     constexpr M m1{};
@@ -541,11 +461,7 @@ int run_test()
         static_assert((m1 != m2) == false, "");
         ASSERT_NOEXCEPT(m1 != m2);
     }
-
-    return 0;
 }
-} // namespace relops
-} // namespace monostate
 
 namespace relops {
 struct MyBool
@@ -626,14 +542,6 @@ void test_equality_basic()
     }
 }
 
-void test_equality()
-{
-    test_equality_basic<int, long>();
-    test_equality_basic<ComparesToMyBool, int>();
-    test_equality_basic<int, ComparesToMyBool>();
-    test_equality_basic<ComparesToMyBool, ComparesToMyBool>();
-}
-
 template <class Var>
 constexpr bool test_less(const Var& l, const Var& r, bool expect_less, bool expect_greater)
 {
@@ -680,41 +588,30 @@ void test_relational_basic()
     }
 }
 
-void test_relational()
+} // namespace relops
+TEST(variant_test, test_relops)
 {
+    using namespace relops;
+    test_equality_basic<int, long>();
+    test_equality_basic<ComparesToMyBool, int>();
+    test_equality_basic<int, ComparesToMyBool>();
+    test_equality_basic<ComparesToMyBool, ComparesToMyBool>();
+
     test_relational_basic<int, long>();
     test_relational_basic<ComparesToMyBool, int>();
     test_relational_basic<int, ComparesToMyBool>();
     test_relational_basic<ComparesToMyBool, ComparesToMyBool>();
 }
-
-int run_test()
-{
-    test_equality();
-    test_relational();
-    return 0;
-}
-} // namespace relops
-
-namespace npos {
-int run_test()
+TEST(variant_test, test_npos)
 {
     static_assert(std::variant_npos == static_cast<std::size_t>(-1), "");
-    return 0;
 }
-} // namespace npos
-
-namespace assign {
-namespace conv {
-int run_test()
+TEST(variant_test, test_assign_conv)
 {
     static_assert(!std::is_assignable<std::variant<int, int>, int>::value, "");
     static_assert(!std::is_assignable<std::variant<long, long long>, int>::value, "");
-    return 0;
 }
-} // namespace conv
-
-namespace copy {
+namespace assign_copy {
 struct NoCopy
 {
     NoCopy(const NoCopy&) = delete;
@@ -924,18 +821,18 @@ void test_copy_assignment_same_index()
         V v1(43);
         V v2(42);
         V& vref = (v1 = v2);
-        assert(&vref == &v1);
-        assert(v1.index() == 0);
-        assert(std::get<0>(v1) == 42);
+        TestAssert(&vref == &v1);
+        TestAssert(v1.index() == 0);
+        TestAssert(std::get<0>(v1) == 42);
     }
     {
         using V = std::variant<int, long, unsigned>;
         V v1(43l);
         V v2(42l);
         V& vref = (v1 = v2);
-        assert(&vref == &v1);
-        assert(v1.index() == 1);
-        assert(std::get<1>(v1) == 42);
+        TestAssert(&vref == &v1);
+        TestAssert(v1.index() == 1);
+        TestAssert(std::get<1>(v1) == 42);
     }
     {
         using V = std::variant<int, CopyAssign, unsigned>;
@@ -944,12 +841,12 @@ void test_copy_assignment_same_index()
         V v2(std::in_place_type<CopyAssign>, 42);
         CopyAssign::reset();
         V& vref = (v1 = v2);
-        assert(&vref == &v1);
-        assert(v1.index() == 1);
-        assert(std::get<1>(v1).value == 42);
-        assert(CopyAssign::copy_construct == 0);
-        assert(CopyAssign::move_construct == 0);
-        assert(CopyAssign::copy_assign == 1);
+        TestAssert(&vref == &v1);
+        TestAssert(v1.index() == 1);
+        TestAssert(std::get<1>(v1).value == 42);
+        TestAssert(CopyAssign::copy_construct == 0);
+        TestAssert(CopyAssign::move_construct == 0);
+        TestAssert(CopyAssign::copy_assign == 1);
     }
 
     {
@@ -1025,26 +922,26 @@ void test_copy_assignment_different_index()
         V v1(43);
         V v2(42l);
         V& vref = (v1 = v2);
-        assert(&vref == &v1);
-        assert(v1.index() == 1);
-        assert(std::get<1>(v1) == 42);
+        TestAssert(&vref == &v1);
+        TestAssert(v1.index() == 1);
+        TestAssert(std::get<1>(v1) == 42);
     }
     {
         using V = std::variant<int, CopyAssign, unsigned>;
         CopyAssign::reset();
         V v1(std::in_place_type<unsigned>, 43u);
         V v2(std::in_place_type<CopyAssign>, 42);
-        assert(CopyAssign::copy_construct == 0);
-        assert(CopyAssign::move_construct == 0);
-        assert(CopyAssign::alive == 1);
+        TestAssert(CopyAssign::copy_construct == 0);
+        TestAssert(CopyAssign::move_construct == 0);
+        TestAssert(CopyAssign::alive == 1);
         V& vref = (v1 = v2);
-        assert(&vref == &v1);
-        assert(v1.index() == 1);
-        assert(std::get<1>(v1).value == 42);
-        assert(CopyAssign::alive == 2);
-        assert(CopyAssign::copy_construct == 1);
-        assert(CopyAssign::move_construct == 1);
-        assert(CopyAssign::copy_assign == 0);
+        TestAssert(&vref == &v1);
+        TestAssert(v1.index() == 1);
+        TestAssert(std::get<1>(v1).value == 42);
+        TestAssert(CopyAssign::alive == 2);
+        TestAssert(CopyAssign::copy_construct == 1);
+        TestAssert(CopyAssign::move_construct == 1);
+        TestAssert(CopyAssign::copy_assign == 0);
     }
 
     {
@@ -1102,20 +999,19 @@ void test_constexpr_copy_assignment()
     static_assert(test_constexpr_assign_imp<1>(V(42l), nullptr), "");
     static_assert(test_constexpr_assign_imp<2>(V(42l), 101), "");
 }
+} // namespace assign_copy
 
-int run_test()
+TEST(variant_test, test_assign_copy)
 {
+    using namespace assign_copy;
     test_copy_assignment_same_index();
     test_copy_assignment_different_index();
     test_copy_assignment_sfinae();
     test_copy_assignment_not_noexcept();
     test_constexpr_copy_assignment();
-
-    return 0;
 }
-} // namespace copy
 
-namespace move {
+namespace assign_move {
 struct NoCopy
 {
     NoCopy(const NoCopy&) = delete;
@@ -1305,35 +1201,6 @@ void test_move_assignment_sfinae()
         using V = std::variant<int, MoveAssignOnly>;
         static_assert(!std::is_move_assignable<V>::value, "");
     }
-
-    // Make sure we properly propagate triviality (see P0602R4).
-#if TEST_STD_VER > 17
-    {
-        using V = std::variant<int, long>;
-        static_assert(std::is_trivially_move_assignable<V>::value, "");
-    }
-    {
-        using V = std::variant<int, NTMoveAssign>;
-        static_assert(!std::is_trivially_move_assignable<V>::value, "");
-        static_assert(std::is_move_assignable<V>::value, "");
-    }
-    {
-        using V = std::variant<int, TMoveAssign>;
-        static_assert(std::is_trivially_move_assignable<V>::value, "");
-    }
-    {
-        using V = std::variant<int, TMoveAssignNTCopyAssign>;
-        static_assert(std::is_trivially_move_assignable<V>::value, "");
-    }
-    {
-        using V = std::variant<int, TrivialCopyNontrivialMove>;
-        static_assert(!std::is_trivially_move_assignable<V>::value, "");
-    }
-    {
-        using V = std::variant<int, CopyOnly>;
-        static_assert(std::is_trivially_move_assignable<V>::value, "");
-    }
-#endif // > C++17
 }
 
 template <typename T>
@@ -1350,18 +1217,18 @@ void test_move_assignment_same_index()
         V v1(43);
         V v2(42);
         V& vref = (v1 = std::move(v2));
-        assert(&vref == &v1);
-        assert(v1.index() == 0);
-        assert(std::get<0>(v1) == 42);
+        TestAssert(&vref == &v1);
+        TestAssert(v1.index() == 0);
+        TestAssert(std::get<0>(v1) == 42);
     }
     {
         using V = std::variant<int, long, unsigned>;
         V v1(43l);
         V v2(42l);
         V& vref = (v1 = std::move(v2));
-        assert(&vref == &v1);
-        assert(v1.index() == 1);
-        assert(std::get<1>(v1) == 42);
+        TestAssert(&vref == &v1);
+        TestAssert(v1.index() == 1);
+        TestAssert(std::get<1>(v1) == 42);
     }
     {
         using V = std::variant<int, MoveAssign, unsigned>;
@@ -1369,11 +1236,11 @@ void test_move_assignment_same_index()
         V v2(std::in_place_type<MoveAssign>, 42);
         MoveAssign::reset();
         V& vref = (v1 = std::move(v2));
-        assert(&vref == &v1);
-        assert(v1.index() == 1);
-        assert(std::get<1>(v1).value == 42);
-        assert(MoveAssign::move_construct == 0);
-        assert(MoveAssign::move_assign == 1);
+        TestAssert(&vref == &v1);
+        TestAssert(v1.index() == 1);
+        TestAssert(std::get<1>(v1).value == 42);
+        TestAssert(MoveAssign::move_construct == 0);
+        TestAssert(MoveAssign::move_assign == 1);
     }
     {
         struct
@@ -1432,9 +1299,9 @@ void test_move_assignment_different_index()
         V v1(43);
         V v2(42l);
         V& vref = (v1 = std::move(v2));
-        assert(&vref == &v1);
-        assert(v1.index() == 1);
-        assert(std::get<1>(v1) == 42);
+        TestAssert(&vref == &v1);
+        TestAssert(v1.index() == 1);
+        TestAssert(std::get<1>(v1) == 42);
     }
     {
         using V = std::variant<int, MoveAssign, unsigned>;
@@ -1442,11 +1309,11 @@ void test_move_assignment_different_index()
         V v2(std::in_place_type<MoveAssign>, 42);
         MoveAssign::reset();
         V& vref = (v1 = std::move(v2));
-        assert(&vref == &v1);
-        assert(v1.index() == 1);
-        assert(std::get<1>(v1).value == 42);
-        assert(MoveAssign::move_construct == 1);
-        assert(MoveAssign::move_assign == 0);
+        TestAssert(&vref == &v1);
+        TestAssert(v1.index() == 1);
+        TestAssert(std::get<1>(v1).value == 42);
+        TestAssert(MoveAssign::move_construct == 1);
+        TestAssert(MoveAssign::move_assign == 0);
     }
     {
         struct
@@ -1504,22 +1371,20 @@ void test_constexpr_move_assignment()
     static_assert(test_constexpr_assign_imp<1>(V(42l), nullptr), "");
     static_assert(test_constexpr_assign_imp<2>(V(42l), 101), "");
 }
+} // namespace assign_move
 
-int run_test()
+TEST(variant_test, test_assign_move)
 {
+    using namespace assign_move;
     test_move_assignment_same_index();
     test_move_assignment_different_index();
     test_move_assignment_sfinae();
     test_move_assignment_noexcept();
     test_constexpr_move_assignment();
-
-    return 0;
 }
-} // namespace move
 
-namespace T {
+namespace template_test {
 namespace MetaHelpers {
-
 struct Dummy
 {
     Dummy() = default;
@@ -1562,10 +1427,10 @@ struct MoveCrashes
     int value;
     MoveCrashes(int v = 0) noexcept
         : value{v} {}
-    MoveCrashes(MoveCrashes&&) noexcept { assert(false); }
+    MoveCrashes(MoveCrashes&&) noexcept { TestAssert(false); }
     MoveCrashes& operator=(MoveCrashes&&) noexcept
     {
-        assert(false);
+        TestAssert(false);
         return *this;
     }
     MoveCrashes& operator=(int v) noexcept
@@ -1581,7 +1446,7 @@ struct ThrowsCtorTandMove
     ThrowsCtorTandMove()
         : value(0) {}
     ThrowsCtorTandMove(int) noexcept(false) { throw 42; }
-    ThrowsCtorTandMove(ThrowsCtorTandMove&&) noexcept(false) { assert(false); }
+    ThrowsCtorTandMove(ThrowsCtorTandMove&&) noexcept(false) { TestAssert(false); }
     ThrowsCtorTandMove& operator=(int v) noexcept
     {
         value = v;
@@ -1665,28 +1530,28 @@ void test_T_assignment_basic()
     {
         std::variant<int> v(43);
         v = 42;
-        assert(v.index() == 0);
-        assert(std::get<0>(v) == 42);
+        TestAssert(v.index() == 0);
+        TestAssert(std::get<0>(v) == 42);
     }
     {
         std::variant<int, long> v(43l);
         v = 42;
-        assert(v.index() == 0);
-        assert(std::get<0>(v) == 42);
+        TestAssert(v.index() == 0);
+        TestAssert(std::get<0>(v) == 42);
         v = 43l;
-        assert(v.index() == 1);
-        assert(std::get<1>(v) == 43);
+        TestAssert(v.index() == 1);
+        TestAssert(std::get<1>(v) == 43);
     }
 
     {
         std::variant<bool volatile, int> v = 42;
         v                                  = false;
-        assert(v.index() == 0);
-        assert(!std::get<0>(v));
+        TestAssert(v.index() == 0);
+        TestAssert(!std::get<0>(v));
         bool lvt = true;
         v        = lvt;
-        assert(v.index() == 0);
-        assert(std::get<0>(v));
+        TestAssert(v.index() == 0);
+        TestAssert(std::get<0>(v));
     }
 }
 
@@ -1699,19 +1564,19 @@ void test_T_assignment_performs_construction()
         try
         {
             v = 42;
-            assert(false);
+            TestAssert(false);
         } catch (...)
         { /* ... */
         }
-        assert(v.index() == 0);
-        assert(std::get<0>(v) == "hello");
+        TestAssert(v.index() == 0);
+        TestAssert(std::get<0>(v) == "hello");
     }
     {
         using V = std::variant<ThrowsAssignT, std::string>;
         V v(std::in_place_type<std::string>, "hello");
         v = 42;
-        assert(v.index() == 0);
-        assert(std::get<0>(v).value == 42);
+        TestAssert(v.index() == 0);
+        TestAssert(std::get<0>(v).value == 42);
     }
 }
 
@@ -1722,15 +1587,15 @@ void test_T_assignment_performs_assignment()
         using V = std::variant<ThrowsCtorT>;
         V v;
         v = 42;
-        assert(v.index() == 0);
-        assert(std::get<0>(v).value == 42);
+        TestAssert(v.index() == 0);
+        TestAssert(std::get<0>(v).value == 42);
     }
     {
         using V = std::variant<ThrowsCtorT, std::string>;
         V v;
         v = 42;
-        assert(v.index() == 0);
-        assert(std::get<0>(v).value == 42);
+        TestAssert(v.index() == 0);
+        TestAssert(std::get<0>(v).value == 42);
     }
     {
         using V = std::variant<ThrowsAssignT>;
@@ -1738,12 +1603,12 @@ void test_T_assignment_performs_assignment()
         try
         {
             v = 42;
-            assert(false);
+            TestAssert(false);
         } catch (...)
         { /* ... */
         }
-        assert(v.index() == 0);
-        assert(std::get<0>(v).value == 100);
+        TestAssert(v.index() == 0);
+        TestAssert(std::get<0>(v).value == 100);
     }
     {
         using V = std::variant<std::string, ThrowsAssignT>;
@@ -1751,39 +1616,34 @@ void test_T_assignment_performs_assignment()
         try
         {
             v = 42;
-            assert(false);
+            TestAssert(false);
         } catch (...)
         { /* ... */
         }
-        assert(v.index() == 1);
-        assert(std::get<1>(v).value == 100);
+        TestAssert(v.index() == 1);
+        TestAssert(std::get<1>(v).value == 100);
     }
 }
+} // namespace template_test
 
-int run_test()
+TEST(variant_test, test_template_test)
 {
+    using namespace template_test;
     test_T_assignment_basic();
     test_T_assignment_performs_construction();
     test_T_assignment_performs_assignment();
     test_T_assignment_noexcept();
     test_T_assignment_sfinae();
-
-    return 0;
 }
-} // namespace T
-} // namespace assign
 
-namespace ctor {
-namespace conv {
-int run_test()
+TEST(variant_test, test_ctor_conv)
 {
     static_assert(!std::is_constructible<std::variant<int, int>, int>::value, "");
     static_assert(!std::is_constructible<std::variant<long, long long>, int>::value, "");
-    return 0;
 }
-} // namespace conv
 
-namespace copy {
+namespace ctor_copy {
+
 struct NonT
 {
     NonT(int v)
@@ -1872,10 +1732,10 @@ void makeEmpty(Variant& v)
     try
     {
         v = std::move(v2);
-        assert(false);
+        TestAssert(false);
     } catch (...)
     {
-        assert(v.valueless_by_exception());
+        TestAssert(v.valueless_by_exception());
     }
 }
 
@@ -1922,28 +1782,28 @@ void test_copy_ctor_basic()
     {
         std::variant<int> v(std::in_place_index<0>, 42);
         std::variant<int> v2 = v;
-        assert(v2.index() == 0);
-        assert(std::get<0>(v2) == 42);
+        TestAssert(v2.index() == 0);
+        TestAssert(std::get<0>(v2) == 42);
     }
     {
         std::variant<int, long> v(std::in_place_index<1>, 42);
         std::variant<int, long> v2 = v;
-        assert(v2.index() == 1);
-        assert(std::get<1>(v2) == 42);
+        TestAssert(v2.index() == 1);
+        TestAssert(std::get<1>(v2) == 42);
     }
     {
         std::variant<NonT> v(std::in_place_index<0>, 42);
-        assert(v.index() == 0);
+        TestAssert(v.index() == 0);
         std::variant<NonT> v2(v);
-        assert(v2.index() == 0);
-        assert(std::get<0>(v2).value == 42);
+        TestAssert(v2.index() == 0);
+        TestAssert(std::get<0>(v2).value == 42);
     }
     {
         std::variant<int, NonT> v(std::in_place_index<1>, 42);
-        assert(v.index() == 1);
+        TestAssert(v.index() == 1);
         std::variant<int, NonT> v2(v);
-        assert(v2.index() == 1);
-        assert(std::get<1>(v2).value == 42);
+        TestAssert(v2.index() == 1);
+        TestAssert(std::get<1>(v2).value == 42);
     }
 
     {
@@ -1997,7 +1857,7 @@ void test_copy_ctor_valueless_by_exception()
     makeEmpty(v1);
     const V& cv1 = v1;
     V v(cv1);
-    assert(v.valueless_by_exception());
+    TestAssert(v.valueless_by_exception());
 }
 
 template <size_t Idx>
@@ -2023,18 +1883,18 @@ void test_constexpr_copy_ctor()
     static_assert(test_constexpr_copy_ctor_imp<1>(V(nullptr)), "");
     static_assert(test_constexpr_copy_ctor_imp<2>(V(101)), "");
 }
+} // namespace ctor_copy
 
-int run_test()
+TEST(variant_test, test_ctor_copy)
 {
+    using namespace ctor_copy;
     test_copy_ctor_basic();
     test_copy_ctor_valueless_by_exception();
     test_copy_ctor_sfinae();
     test_constexpr_copy_ctor();
-    return 0;
 }
-} // namespace copy
 
-namespace default_ctor {
+namespace ctor_default_ctor {
 struct NonDefaultConstructible
 {
     constexpr NonDefaultConstructible(int) {}
@@ -2080,13 +1940,13 @@ void test_default_ctor_throws()
     try
     {
         V v;
-        assert(false);
+        TestAssert(false);
     } catch (const int& ex)
     {
-        assert(ex == 42);
+        TestAssert(ex == 42);
     } catch (...)
     {
-        assert(false);
+        TestAssert(false);
     }
 }
 
@@ -2094,18 +1954,18 @@ void test_default_ctor_basic()
 {
     {
         std::variant<int> v;
-        assert(v.index() == 0);
-        assert(std::get<0>(v) == 0);
+        TestAssert(v.index() == 0);
+        TestAssert(std::get<0>(v) == 0);
     }
     {
         std::variant<int, long> v;
-        assert(v.index() == 0);
-        assert(std::get<0>(v) == 0);
+        TestAssert(v.index() == 0);
+        TestAssert(std::get<0>(v) == 0);
     }
     {
         std::variant<int, NonDefaultConstructible> v;
-        assert(v.index() == 0);
-        assert(std::get<0>(v) == 0);
+        TestAssert(v.index() == 0);
+        TestAssert(std::get<0>(v) == 0);
     }
     {
         using V = std::variant<int, long>;
@@ -2127,18 +1987,18 @@ void test_default_ctor_basic()
     }
 }
 
-int run_test()
+} // namespace ctor_default_ctor
+
+TEST(variant_test, test_ctor_default_ctor)
 {
+    using namespace ctor_default_ctor;
     test_default_ctor_basic();
     test_default_ctor_sfinae();
     test_default_ctor_noexcept();
     test_default_ctor_throws();
-
-    return 0;
 }
-} // namespace default_ctor
 
-namespace in_place_index_args {
+namespace ctor_in_place_index_args {
 void test_ctor_sfinae()
 {
     {
@@ -2184,35 +2044,34 @@ void test_ctor_basic()
         using V = std::variant<const int, volatile int, int>;
         int x   = 42;
         V v(std::in_place_index<0>, x);
-        assert(v.index() == 0);
-        assert(std::get<0>(v) == x);
+        TestAssert(v.index() == 0);
+        TestAssert(std::get<0>(v) == x);
     }
     {
         using V = std::variant<const int, volatile int, int>;
         int x   = 42;
         V v(std::in_place_index<1>, x);
-        assert(v.index() == 1);
-        assert(std::get<1>(v) == x);
+        TestAssert(v.index() == 1);
+        TestAssert(std::get<1>(v) == x);
     }
     {
         using V = std::variant<const int, volatile int, int>;
         int x   = 42;
         V v(std::in_place_index<2>, x);
-        assert(v.index() == 2);
-        assert(std::get<2>(v) == x);
+        TestAssert(v.index() == 2);
+        TestAssert(std::get<2>(v) == x);
     }
 }
+} // namespace ctor_in_place_index_args
 
-int run_test()
+TEST(variant_test, test_ctor_in_place_index_args)
 {
+    using namespace ctor_in_place_index_args;
     test_ctor_basic();
     test_ctor_sfinae();
-
-    return 0;
 }
-} // namespace in_place_index_args
 
-namespace in_place_index_init_list_args {
+namespace ctor_in_place_index_init_list_args {
 struct InitList
 {
     std::size_t size;
@@ -2280,17 +2139,16 @@ void test_ctor_basic()
         static_assert(std::get<1>(v).value == 42, "");
     }
 }
+} // namespace ctor_in_place_index_init_list_args
 
-int run_test()
+TEST(variant_test, test_ctor_in_place_index_init_list_args)
 {
+    using namespace ctor_in_place_index_init_list_args;
     test_ctor_basic();
     test_ctor_sfinae();
-
-    return 0;
 }
-} // namespace in_place_index_init_list_args
 
-namespace in_place_type_args {
+namespace ctor_in_place_type_args {
 void test_ctor_sfinae()
 {
     {
@@ -2340,35 +2198,35 @@ void test_ctor_basic()
         using V = std::variant<const int, volatile int, int>;
         int x   = 42;
         V v(std::in_place_type<const int>, x);
-        assert(v.index() == 0);
-        assert(std::get<0>(v) == x);
+        TestAssert(v.index() == 0);
+        TestAssert(std::get<0>(v) == x);
     }
     {
         using V = std::variant<const int, volatile int, int>;
         int x   = 42;
         V v(std::in_place_type<volatile int>, x);
-        assert(v.index() == 1);
-        assert(std::get<1>(v) == x);
+        TestAssert(v.index() == 1);
+        TestAssert(std::get<1>(v) == x);
     }
     {
         using V = std::variant<const int, volatile int, int>;
         int x   = 42;
         V v(std::in_place_type<int>, x);
-        assert(v.index() == 2);
-        assert(std::get<2>(v) == x);
+        TestAssert(v.index() == 2);
+        TestAssert(std::get<2>(v) == x);
     }
 }
 
-int run_test()
+} // namespace ctor_in_place_type_args
+
+TEST(variant_test, test_ctor_in_place_type_args)
 {
+    using namespace ctor_in_place_type_args;
     test_ctor_basic();
     test_ctor_sfinae();
-
-    return 0;
 }
-} // namespace in_place_type_args
 
-namespace in_place_type_init_list_args {
+namespace ctor_in_place_type_init_list_args {
 struct InitList
 {
     std::size_t size;
@@ -2428,16 +2286,16 @@ void test_ctor_basic()
     }
 }
 
-int run_test()
+} // namespace ctor_in_place_type_init_list_args
+
+TEST(variant_test, test_in_place_type_init_list_args)
 {
+    using namespace ctor_in_place_type_init_list_args;
     test_ctor_basic();
     test_ctor_sfinae();
-
-    return 0;
 }
-} // namespace in_place_type_init_list_args
 
-namespace move {
+namespace ctor_move {
 struct ThrowsMove
 {
     ThrowsMove(ThrowsMove&&) noexcept(false) {}
@@ -2526,10 +2384,10 @@ void makeEmpty(Variant& v)
     try
     {
         v = std::move(v2);
-        assert(false);
+        TestAssert(false);
     } catch (...)
     {
-        assert(v.valueless_by_exception());
+        TestAssert(v.valueless_by_exception());
     }
 }
 
@@ -2603,44 +2461,44 @@ void test_move_ctor_basic()
     {
         std::variant<int> v(std::in_place_index<0>, 42);
         std::variant<int> v2 = std::move(v);
-        assert(v2.index() == 0);
-        assert(std::get<0>(v2) == 42);
+        TestAssert(v2.index() == 0);
+        TestAssert(std::get<0>(v2) == 42);
     }
     {
         std::variant<int, long> v(std::in_place_index<1>, 42);
         std::variant<int, long> v2 = std::move(v);
-        assert(v2.index() == 1);
-        assert(std::get<1>(v2) == 42);
+        TestAssert(v2.index() == 1);
+        TestAssert(std::get<1>(v2) == 42);
     }
     {
         std::variant<MoveOnly> v(std::in_place_index<0>, 42);
-        assert(v.index() == 0);
+        TestAssert(v.index() == 0);
         std::variant<MoveOnly> v2(std::move(v));
-        assert(v2.index() == 0);
-        assert(std::get<0>(v2).value == 42);
+        TestAssert(v2.index() == 0);
+        TestAssert(std::get<0>(v2).value == 42);
     }
     {
         std::variant<int, MoveOnly> v(std::in_place_index<1>, 42);
-        assert(v.index() == 1);
+        TestAssert(v.index() == 1);
         std::variant<int, MoveOnly> v2(std::move(v));
-        assert(v2.index() == 1);
-        assert(std::get<1>(v2).value == 42);
+        TestAssert(v2.index() == 1);
+        TestAssert(std::get<1>(v2).value == 42);
     }
     {
         std::variant<MoveOnlyNT> v(std::in_place_index<0>, 42);
-        assert(v.index() == 0);
+        TestAssert(v.index() == 0);
         std::variant<MoveOnlyNT> v2(std::move(v));
-        assert(v2.index() == 0);
-        assert(std::get<0>(v).value == -1);
-        assert(std::get<0>(v2).value == 42);
+        TestAssert(v2.index() == 0);
+        TestAssert(std::get<0>(v).value == -1);
+        TestAssert(std::get<0>(v2).value == 42);
     }
     {
         std::variant<int, MoveOnlyNT> v(std::in_place_index<1>, 42);
-        assert(v.index() == 1);
+        TestAssert(v.index() == 1);
         std::variant<int, MoveOnlyNT> v2(std::move(v));
-        assert(v2.index() == 1);
-        assert(std::get<1>(v).value == -1);
-        assert(std::get<1>(v2).value == 42);
+        TestAssert(v2.index() == 1);
+        TestAssert(std::get<1>(v).value == -1);
+        TestAssert(std::get<1>(v2).value == 42);
     }
 
     {
@@ -2735,7 +2593,7 @@ void test_move_ctor_valueless_by_exception()
     V v1;
     makeEmpty(v1);
     V v(std::move(v1));
-    assert(v.valueless_by_exception());
+    TestAssert(v.valueless_by_exception());
 }
 
 template <size_t Idx>
@@ -2771,9 +2629,14 @@ int run_test()
 
     return 0;
 }
-} // namespace move
+} // namespace ctor_move
 
-namespace T {
+TEST(variant_test, test_ctor_move)
+{
+    using namespace ctor_move;
+    run_test();
+}
+namespace ctor_T {
 struct Dummy
 {
     Dummy() = default;
@@ -2869,16 +2732,16 @@ void test_T_ctor_basic()
     }
     {
         std::variant<bool volatile const, int> v = true;
-        assert(v.index() == 0);
-        assert(std::get<0>(v));
+        TestAssert(v.index() == 0);
+        TestAssert(std::get<0>(v));
     }
     {
         std::variant<RValueConvertibleFrom<int>> v1 = 42;
-        assert(v1.index() == 0);
+        TestAssert(v1.index() == 0);
 
         int x                                                         = 42;
         std::variant<RValueConvertibleFrom<int>, AnyConstructible> v2 = x;
-        assert(v2.index() == 1);
+        TestAssert(v2.index() == 1);
     }
 }
 
@@ -2895,8 +2758,8 @@ void test_no_narrowing_check_for_class_types()
 {
     using V = std::variant<int, FailOnAnything>;
     V v(42);
-    assert(v.index() == 0);
-    assert(std::get<0>(v) == 42);
+    TestAssert(v.index() == 0);
+    TestAssert(std::get<0>(v) == 42);
 }
 
 struct Bar
@@ -2922,8 +2785,13 @@ int run_test()
     test_construction_with_repeated_types();
     return 0;
 }
-} // namespace T
-} // namespace ctor
+} // namespace ctor_T
+
+TEST(variant_test, test_ctor_T)
+{
+    using namespace ctor_T;
+    run_test();
+}
 
 namespace dtor {
 struct NonTDtor
@@ -2963,29 +2831,35 @@ int run_test()
         static_assert(!std::is_trivially_destructible<V>::value, "");
         {
             V v(std::in_place_index<0>);
-            assert(NonTDtor::count == 0);
-            assert(NonTDtor1::count == 0);
+            TestAssert(NonTDtor::count == 0);
+            TestAssert(NonTDtor1::count == 0);
         }
-        assert(NonTDtor::count == 1);
-        assert(NonTDtor1::count == 0);
+        TestAssert(NonTDtor::count == 1);
+        TestAssert(NonTDtor1::count == 0);
         NonTDtor::count = 0;
         {
             V v(std::in_place_index<1>);
         }
-        assert(NonTDtor::count == 0);
-        assert(NonTDtor1::count == 0);
+        TestAssert(NonTDtor::count == 0);
+        TestAssert(NonTDtor1::count == 0);
         {
             V v(std::in_place_index<2>);
-            assert(NonTDtor::count == 0);
-            assert(NonTDtor1::count == 0);
+            TestAssert(NonTDtor::count == 0);
+            TestAssert(NonTDtor1::count == 0);
         }
-        assert(NonTDtor::count == 0);
-        assert(NonTDtor1::count == 1);
+        TestAssert(NonTDtor::count == 0);
+        TestAssert(NonTDtor1::count == 1);
     }
 
     return 0;
 }
 } // namespace dtor
+
+TEST(variant_test, test_dtor)
+{
+    using namespace dtor;
+    run_test();
+}
 
 namespace emplace {
 namespace index {
@@ -3032,12 +2906,12 @@ void test_basic()
         V v(42);
         auto& ref1 = v.emplace<0>();
         static_assert(std::is_same_v<int&, decltype(ref1)>, "");
-        assert(std::get<0>(v) == 0);
-        assert(&ref1 == &std::get<0>(v));
+        TestAssert(std::get<0>(v) == 0);
+        TestAssert(&ref1 == &std::get<0>(v));
         auto& ref2 = v.emplace<0>(42);
         static_assert(std::is_same_v<int&, decltype(ref2)>, "");
-        assert(std::get<0>(v) == 42);
-        assert(&ref2 == &std::get<0>(v));
+        TestAssert(std::get<0>(v) == 42);
+        TestAssert(&ref2 == &std::get<0>(v));
     }
 }
 
@@ -3089,17 +2963,17 @@ void test_basic()
     V v;
     auto& ref1 = v.emplace<1>({1, 2, 3});
     static_assert(std::is_same_v<InitList&, decltype(ref1)>, "");
-    assert(std::get<1>(v).size == 3);
-    assert(&ref1 == &std::get<1>(v));
+    TestAssert(std::get<1>(v).size == 3);
+    TestAssert(&ref1 == &std::get<1>(v));
     auto& ref2 = v.emplace<2>({1, 2, 3, 4}, 42);
     static_assert(std::is_same_v<InitListArg&, decltype(ref2)>, "");
-    assert(std::get<2>(v).size == 4);
-    assert(std::get<2>(v).value == 42);
-    assert(&ref2 == &std::get<2>(v));
+    TestAssert(std::get<2>(v).size == 4);
+    TestAssert(std::get<2>(v).value == 42);
+    TestAssert(&ref2 == &std::get<2>(v));
     auto& ref3 = v.emplace<1>({1});
     static_assert(std::is_same_v<InitList&, decltype(ref3)>, "");
-    assert(std::get<1>(v).size == 1);
-    assert(&ref3 == &std::get<1>(v));
+    TestAssert(std::get<1>(v).size == 1);
+    TestAssert(&ref3 == &std::get<1>(v));
 }
 
 int run_test()
@@ -3152,12 +3026,12 @@ void test_basic()
         V v(42);
         auto& ref1 = v.emplace<int>();
         static_assert(std::is_same_v<int&, decltype(ref1)>, "");
-        assert(std::get<0>(v) == 0);
-        assert(&ref1 == &std::get<0>(v));
+        TestAssert(std::get<0>(v) == 0);
+        TestAssert(&ref1 == &std::get<0>(v));
         auto& ref2 = v.emplace<int>(42);
         static_assert(std::is_same_v<int&, decltype(ref2)>, "");
-        assert(std::get<0>(v) == 42);
-        assert(&ref2 == &std::get<0>(v));
+        TestAssert(std::get<0>(v) == 42);
+        TestAssert(&ref2 == &std::get<0>(v));
     }
     {
         using V     = std::variant<int, long, const void*, std::string>;
@@ -3165,17 +3039,17 @@ void test_basic()
         V v(std::in_place_type<int>, -1);
         auto& ref1 = v.emplace<long>();
         static_assert(std::is_same_v<long&, decltype(ref1)>, "");
-        assert(std::get<1>(v) == 0);
-        assert(&ref1 == &std::get<1>(v));
+        TestAssert(std::get<1>(v) == 0);
+        TestAssert(&ref1 == &std::get<1>(v));
         auto& ref2 = v.emplace<const void*>(&x);
         static_assert(std::is_same_v<const void*&, decltype(ref2)>, "");
-        assert(std::get<2>(v) == &x);
-        assert(&ref2 == &std::get<2>(v));
+        TestAssert(std::get<2>(v) == &x);
+        TestAssert(&ref2 == &std::get<2>(v));
         // emplace with multiple args
         auto& ref3 = v.emplace<std::string>(3u, 'a');
         static_assert(std::is_same_v<std::string&, decltype(ref3)>, "");
-        assert(std::get<3>(v) == "aaa");
-        assert(&ref3 == &std::get<3>(v));
+        TestAssert(std::get<3>(v) == "aaa");
+        TestAssert(&ref3 == &std::get<3>(v));
     }
 }
 
@@ -3259,6 +3133,14 @@ int run_test()
 } // namespace in_place_type_init_list_args
 } // namespace emplace
 
+TEST(variant_test, test_emplace)
+{
+    emplace::index::run_test();
+    emplace::index_init_list_args::run_test();
+    emplace::type_args::run_test();
+    emplace::in_place_type_init_list_args::run_test();
+}
+
 namespace status {
 namespace index {
 int run_test()
@@ -3271,7 +3153,7 @@ int run_test()
     {
         using V = std::variant<int, long>;
         V v;
-        assert(v.index() == 0);
+        TestAssert(v.index() == 0);
     }
     {
         using V = std::variant<int, long>;
@@ -3281,9 +3163,9 @@ int run_test()
     {
         using V = std::variant<int, std::string>;
         V v("abc");
-        assert(v.index() == 1);
+        TestAssert(v.index() == 1);
         v = 42;
-        assert(v.index() == 0);
+        TestAssert(v.index() == 0);
     }
     return 0;
 }
@@ -3299,18 +3181,24 @@ int run_test()
     {
         using V = std::variant<int, long>;
         V v;
-        assert(!v.valueless_by_exception());
+        TestAssert(!v.valueless_by_exception());
     }
     {
         using V = std::variant<int, long, std::string>;
         const V v("abc");
-        assert(!v.valueless_by_exception());
+        TestAssert(!v.valueless_by_exception());
     }
 
     return 0;
 }
 } // namespace valueless_by_exception
 } // namespace status
+
+TEST(variant_test, test_status)
+{
+    status::index::run_test();
+    status::valueless_by_exception::run_test();
+}
 
 namespace member_swap {
 struct NotSwappable
@@ -3372,7 +3260,7 @@ struct NothrowTypeImp
     NothrowTypeImp(const NothrowTypeImp& o) noexcept(NT_Copy)
         : value(o.value)
     {
-        assert(false);
+        TestAssert(false);
     } // never called by test
     NothrowTypeImp(NothrowTypeImp&& o) noexcept(NT_Move)
         : value(o.value)
@@ -3383,7 +3271,7 @@ struct NothrowTypeImp
     }
     NothrowTypeImp& operator=(const NothrowTypeImp&) noexcept(NT_CopyAssign)
     {
-        assert(false);
+        TestAssert(false);
         return *this;
     } // never called by the tests
     NothrowTypeImp& operator=(NothrowTypeImp&& o) noexcept(NT_MoveAssign)
@@ -3452,7 +3340,7 @@ struct NonThrowingNonNoexceptType
     NonThrowingNonNoexceptType&
     operator=(NonThrowingNonNoexceptType&&) noexcept(false)
     {
-        assert(false); // never called by the tests.
+        TestAssert(false); // never called by the tests.
         return *this;
     }
     int value;
@@ -3474,7 +3362,7 @@ struct ThrowsOnSecondMove
     }
     ThrowsOnSecondMove& operator=(ThrowsOnSecondMove&&)
     {
-        assert(false); // not called by test
+        TestAssert(false); // not called by test
         return *this;
     }
 };
@@ -3492,13 +3380,13 @@ void test_swap_same_alternative()
         V v1(std::in_place_index<0>, 42);
         V v2(std::in_place_index<0>, 100);
         v1.swap(v2);
-        assert(T::swap_called == 1);
-        assert(std::get<0>(v1).value == 100);
-        assert(std::get<0>(v2).value == 42);
+        TestAssert(T::swap_called == 1);
+        TestAssert(std::get<0>(v1).value == 100);
+        TestAssert(std::get<0>(v2).value == 42);
         swap(v1, v2);
-        assert(T::swap_called == 2);
-        assert(std::get<0>(v1).value == 42);
-        assert(std::get<0>(v2).value == 100);
+        TestAssert(T::swap_called == 2);
+        TestAssert(std::get<0>(v1).value == 42);
+        TestAssert(std::get<0>(v2).value == 100);
     }
     {
         using T = NothrowMoveable;
@@ -3507,18 +3395,18 @@ void test_swap_same_alternative()
         V v1(std::in_place_index<0>, 42);
         V v2(std::in_place_index<0>, 100);
         v1.swap(v2);
-        assert(T::swap_called == 0);
-        assert(T::move_called == 1);
-        assert(T::move_assign_called == 2);
-        assert(std::get<0>(v1).value == 100);
-        assert(std::get<0>(v2).value == 42);
+        TestAssert(T::swap_called == 0);
+        TestAssert(T::move_called == 1);
+        TestAssert(T::move_assign_called == 2);
+        TestAssert(std::get<0>(v1).value == 100);
+        TestAssert(std::get<0>(v2).value == 42);
         T::reset();
         swap(v1, v2);
-        assert(T::swap_called == 0);
-        assert(T::move_called == 1);
-        assert(T::move_assign_called == 2);
-        assert(std::get<0>(v1).value == 42);
-        assert(std::get<0>(v2).value == 100);
+        TestAssert(T::swap_called == 0);
+        TestAssert(T::move_called == 1);
+        TestAssert(T::move_assign_called == 2);
+        TestAssert(std::get<0>(v1).value == 42);
+        TestAssert(std::get<0>(v2).value == 100);
     }
 }
 
@@ -3531,22 +3419,22 @@ void test_swap_different_alternatives()
         V v1(std::in_place_index<0>, 42);
         V v2(std::in_place_index<1>, 100);
         v1.swap(v2);
-        assert(T::swap_called == 0);
+        TestAssert(T::swap_called == 0);
         // The libc++ implementation double copies the argument, and not
         // the variant swap is called on.
-        assert(T::move_called != 1);
-        assert(T::move_called <= 2);
-        assert(T::move_assign_called == 0);
-        assert(std::get<1>(v1) == 100);
-        assert(std::get<0>(v2).value == 42);
+        TestAssert(T::move_called != 1);
+        TestAssert(T::move_called <= 2);
+        TestAssert(T::move_assign_called == 0);
+        TestAssert(std::get<1>(v1) == 100);
+        TestAssert(std::get<0>(v2).value == 42);
         T::reset();
         swap(v1, v2);
-        assert(T::swap_called == 0);
-        assert(T::move_called != 2);
-        assert(T::move_called <= 2);
-        assert(T::move_assign_called == 0);
-        assert(std::get<0>(v1).value == 42);
-        assert(std::get<1>(v2) == 100);
+        TestAssert(T::swap_called == 0);
+        TestAssert(T::move_called != 2);
+        TestAssert(T::move_called <= 2);
+        TestAssert(T::move_assign_called == 0);
+        TestAssert(std::get<0>(v1).value == 42);
+        TestAssert(std::get<1>(v2) == 100);
     }
 }
 
@@ -3694,6 +3582,11 @@ int run_test()
 }
 } // namespace member_swap
 
+TEST(variant_test, test_member_swap)
+{
+    member_swap::run_test();
+}
+
 namespace visit {
 namespace robust_against_adl {
 struct PrintVisitor1
@@ -3724,64 +3617,7 @@ int run_test()
 }
 } // namespace visit::robust_against_adl
 
-int run_all_test()
+TEST(variant_test, test_visit)
 {
-    auto time1 = std::chrono::system_clock::now().time_since_epoch().count();
-    bad_variant_access::run_test();
-
-    get_if::index::run_test();
-    get_if::type::run_test();
-
-    get::index::run_test();
-    get::type::run_test();
-
-    holds_alternative::run_test();
-
-    hash::run_test();
-
-    helpers::variant_alternative::run_test();
-    helpers::variant_size::run_test();
-
-    monostate::properties::run_test();
-    monostate::relops::run_test();
-
-    relops::run_test();
-
-    npos::run_test();
-
-    assign::conv::run_test();
-    assign::copy::run_test();
-    assign::move::run_test();
-    assign::T::run_test();
-
-    ctor::conv::run_test();
-    ctor::copy::run_test();
-    ctor::default_ctor::run_test();
-    ctor::in_place_index_args::run_test();
-    ctor::in_place_index_init_list_args::run_test();
-    ctor::in_place_type_args::run_test();
-    ctor::in_place_type_init_list_args::run_test();
-    ctor::move::run_test();
-    ctor::T::run_test();
-
-    dtor::run_test();
-
-    emplace::index::run_test();
-    emplace::index_init_list_args::run_test();
-    emplace::type_args::run_test();
-    emplace::in_place_type_init_list_args::run_test();
-
-    status::index::run_test();
-    status::valueless_by_exception::run_test();
-
-    member_swap::run_test();
-
     visit::robust_against_adl::run_test();
-
-    auto time2 = std::chrono::system_clock::now().time_since_epoch().count();
-    auto time  = time2 - time1;
-    printf("%lld us\n", time);
-    return 0;
 }
-
-} // namespace VariantTest

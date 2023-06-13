@@ -16,11 +16,11 @@
     <Filter Include="头文件\base">
       <UniqueIdentifier>{426763e9-9677-4f18-92a9-9fac4ffd9338}</UniqueIdentifier>
     </Filter>
-    <Filter Include="头文件\test">
-      <UniqueIdentifier>{1e5668b4-c404-423a-9e1a-6b3e2c7aab8c}</UniqueIdentifier>
-    </Filter>
     <Filter Include="源文件\test">
       <UniqueIdentifier>{ba69a7d5-249e-4d14-a9f9-1edc9595ed68}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\gtest">
+      <UniqueIdentifier>{06cad896-345c-4f8c-8b4a-c16ae1317b3a}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -54,8 +54,47 @@
     <ClInclude Include="..\..\src\base\Variant.h">
       <Filter>头文件\base</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\test\VariantTest.h">
-      <Filter>头文件\test</Filter>
+    <ClInclude Include="..\..\src\base\IteratorBase.h">
+      <Filter>头文件\base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\googletest\gtest\gtest.h">
+      <Filter>头文件\gtest</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\googletest\gtest\gtest_pred_impl.h">
+      <Filter>头文件\gtest</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\googletest\gtest\gtest_prod.h">
+      <Filter>头文件\gtest</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\googletest\gtest\gtest-assertion-result.h">
+      <Filter>头文件\gtest</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\googletest\gtest\gtest-death-test.h">
+      <Filter>头文件\gtest</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\googletest\gtest\gtest-matchers.h">
+      <Filter>头文件\gtest</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\googletest\gtest\gtest-message.h">
+      <Filter>头文件\gtest</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\googletest\gtest\gtest-param-test.h">
+      <Filter>头文件\gtest</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\googletest\gtest\gtest-printers.h">
+      <Filter>头文件\gtest</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\googletest\gtest\gtest-spi.h">
+      <Filter>头文件\gtest</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\googletest\gtest\gtest-test-part.h">
+      <Filter>头文件\gtest</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\googletest\gtest\gtest-typed-test.h">
+      <Filter>头文件\gtest</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\reflection\Registration.h">
+      <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -66,6 +105,9 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\test\VariantTest.cpp">
+      <Filter>源文件\test</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\test\StringViewTest.cpp">
       <Filter>源文件\test</Filter>
     </ClCompile>
   </ItemGroup>

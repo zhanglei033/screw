@@ -21,32 +21,32 @@
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{78e9b03f-dcef-4b86-9ff5-5807174b75d6}</ProjectGuid>
-    <RootNamespace>utils</RootNamespace>
+    <ProjectGuid>{4bd03749-6c2b-4847-bbb4-7052542f4dc5}</ProjectGuid>
+    <RootNamespace>gtest</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v143</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v143</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
@@ -70,15 +70,15 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <OutDir>$(SolutionDir)..\bin\windows\$(PlatformShortName)\$(Configuration)\</OutDir>
-    <IntDir>$(OutDir)objs\$(ProjectName)\</IntDir>
-  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <OutDir>$(SolutionDir)..\bin\windows\$(PlatformShortName)\$(Configuration)\</OutDir>
     <IntDir>$(OutDir)objs\$(ProjectName)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <OutDir>$(SolutionDir)..\bin\windows\$(PlatformShortName)\$(Configuration)\</OutDir>
+    <IntDir>$(OutDir)objs\$(ProjectName)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <OutDir>$(SolutionDir)..\bin\windows\$(PlatformShortName)\$(Configuration)\</OutDir>
     <IntDir>$(OutDir)objs\$(ProjectName)\</IntDir>
   </PropertyGroup>
@@ -92,8 +92,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <LanguageStandard>stdcpp14</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\src</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\src;$(SolutionDir)..\src\googletest</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -108,8 +107,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <LanguageStandard>stdcpp14</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\src</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\src;$(SolutionDir)..\src\googletest</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -124,8 +122,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\src</AdditionalIncludeDirectories>
-      <LanguageStandard>stdcpp14</LanguageStandard>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\src;$(SolutionDir)..\src\googletest</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -140,8 +137,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\src</AdditionalIncludeDirectories>
-      <LanguageStandard>stdcpp14</LanguageStandard>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\src;$(SolutionDir)..\src\googletest</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -151,47 +147,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\src\utils\ArrayList.h" />
-    <ClInclude Include="..\..\src\utils\Assert.h" />
-    <ClInclude Include="..\..\src\utils\IteratorBase.h" />
-    <ClInclude Include="..\..\src\utils\MetaData.h" />
-    <ClInclude Include="..\..\src\utils\STL.h" />
-    <ClInclude Include="..\..\src\utils\UtilsDef.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="..\..\src\rttr\constructor.cpp" />
-    <ClCompile Include="..\..\src\rttr\destructor.cpp" />
-    <ClCompile Include="..\..\src\rttr\detail\comparison\compare_equal.cpp" />
-    <ClCompile Include="..\..\src\rttr\detail\comparison\compare_less.cpp" />
-    <ClCompile Include="..\..\src\rttr\detail\constructor\constructor_wrapper_base.cpp" />
-    <ClCompile Include="..\..\src\rttr\detail\conversion\std_conversion_functions.cpp" />
-    <ClCompile Include="..\..\src\rttr\detail\destructor\destructor_wrapper_base.cpp" />
-    <ClCompile Include="..\..\src\rttr\detail\enumeration\enumeration_helper.cpp" />
-    <ClCompile Include="..\..\src\rttr\detail\enumeration\enumeration_wrapper_base.cpp" />
-    <ClCompile Include="..\..\src\rttr\detail\library\library_unix.cpp" />
-    <ClCompile Include="..\..\src\rttr\detail\library\library_win.cpp" />
-    <ClCompile Include="..\..\src\rttr\detail\method\method_wrapper_base.cpp" />
-    <ClCompile Include="..\..\src\rttr\detail\misc\standard_types.cpp" />
-    <ClCompile Include="..\..\src\rttr\detail\parameter_info\parameter_info_wrapper_base.cpp" />
-    <ClCompile Include="..\..\src\rttr\detail\property\property_wrapper_base.cpp" />
-    <ClCompile Include="..\..\src\rttr\detail\registration\registration_executer.cpp" />
-    <ClCompile Include="..\..\src\rttr\detail\registration\registration_state_saver.cpp" />
-    <ClCompile Include="..\..\src\rttr\detail\type\type_data.cpp" />
-    <ClCompile Include="..\..\src\rttr\detail\type\type_register.cpp" />
-    <ClCompile Include="..\..\src\rttr\detail\variant\variant_compare.cpp" />
-    <ClCompile Include="..\..\src\rttr\enumeration.cpp" />
-    <ClCompile Include="..\..\src\rttr\library.cpp" />
-    <ClCompile Include="..\..\src\rttr\method.cpp" />
-    <ClCompile Include="..\..\src\rttr\parameter_info.cpp" />
-    <ClCompile Include="..\..\src\rttr\policy.cpp" />
-    <ClCompile Include="..\..\src\rttr\property.cpp" />
-    <ClCompile Include="..\..\src\rttr\registration.cpp" />
-    <ClCompile Include="..\..\src\rttr\type.cpp" />
-    <ClCompile Include="..\..\src\rttr\variant.cpp" />
-    <ClCompile Include="..\..\src\rttr\variant_associative_view.cpp" />
-    <ClCompile Include="..\..\src\rttr\variant_sequential_view.cpp" />
-    <ClCompile Include="..\..\src\rttr\visitor.cpp" />
-    <ClCompile Include="..\..\src\utils\test.cpp" />
+    <ClCompile Include="..\..\src\googletest\src\gtest-all.cc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

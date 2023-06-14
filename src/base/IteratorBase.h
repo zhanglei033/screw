@@ -70,8 +70,9 @@ public:
 
     constexpr derived_type operator++(int) noexcept
     {
-        auto temp = AsDerived();
-        temp.Increment(1);
+        auto& derived = AsDerived();
+        auto temp     = derived;
+        derived.Increment(1);
         return temp;
     }
 
@@ -84,8 +85,9 @@ public:
 
     derived_type operator--(int) noexcept
     {
-        auto temp = AsDerived();
-        temp.Decrement(1);
+        auto& derived = AsDerived();
+        auto temp     = derived;
+        derived.Decrement(1);
         return temp;
     }
 
@@ -147,9 +149,7 @@ private:
 
 // 通用的随机访问读写迭代器模板
 template <class T, bool IsConst>
-class RandomIterator : public IteratorBase<std::conditional_t<IsConst,
-                                                              ConstIteratorTraits<RandomIterator<T, IsConst>, T, std::random_access_iterator_tag>,
-                                                              IteratorTraits<RandomIterator<T, IsConst>, T, std::random_access_iterator_tag>>>
+class RandomIterator : public IteratorBase<std::conditional_t<IsConst, ConstIteratorTraits<RandomIterator<T, IsConst>, T, std::random_access_iterator_tag>, IteratorTraits<RandomIterator<T, IsConst>, T, std::random_access_iterator_tag>>>
 {
 public:
     using base_type         = IteratorBase<std::conditional_t<IsConst,
@@ -201,6 +201,11 @@ public:
         return *this;
     }
 #endif
+
+    DECL_NODISCARD constexpr reference operator[](const difference_type offset) const noexcept
+    {
+        return *(*this + offset);
+    }
     DECL_NODISCARD constexpr pointer Unwrapped() noexcept
     {
         return m_data;
@@ -211,8 +216,10 @@ public:
 #ifndef NDEBUG
         ASSERT(m_data != nullptr, "Iterator not initialized");
         ASSERT(m_offset < m_size, "Iterator is last");
-#endif
+        return m_data[m_offset];
+#else
         return *m_data;
+#endif
     }
 
     constexpr void Increment(const difference_type n) noexcept
@@ -228,8 +235,9 @@ public:
             ASSERT(m_offset >= -n, "Iterator out of bounds");
         }
         m_offset += n;
-#endif
+#else
         m_data += n;
+#endif
     }
 
     constexpr void Decrement(const difference_type n) noexcept
@@ -246,32 +254,39 @@ public:
             ASSERT(m_size - m_offset >= -n, "Iterator out of bounds");
         }
         m_offset -= n;
-#endif
+#else
         m_data -= n;
+#endif
     }
 
     DECL_NODISCARD constexpr bool Equals(const RandomIterator& r) const noexcept
     {
 #ifndef NDEBUG
         ASSERT(m_data == r.m_data && m_size == r.m_size, "Iterators incompatible");
-#endif
+        return m_offset == r.m_offset;
+#else
         return m_data == r.m_data;
+#endif
     }
 
     DECL_NODISCARD constexpr bool LessThan(const RandomIterator& r) const noexcept
     {
 #ifndef NDEBUG
         ASSERT(m_data == r.m_data && m_size == r.m_size, "Iterators incompatible");
-#endif
+        return m_offset < r.m_offset;
+#else
         return m_data < r.m_data;
+#endif
     };
 
     DECL_NODISCARD constexpr difference_type Distance(const RandomIterator& r) const noexcept
     {
 #ifndef NDEBUG
         ASSERT(m_data == r.m_data && m_size == r.m_size, "Iterators incompatible");
-#endif
+        return m_offset - r.m_offset;
+#else
         return m_data - r.m_data;
+#endif
     }
 
 private:
@@ -281,5 +296,13 @@ private:
     size_t m_offset;
 #endif
 };
+
+template <class T, bool IsConst>
+DECL_NODISCARD DECL_CONSTEXPR11 RandomIterator<T, IsConst> operator+(const typename RandomIterator<T, IsConst>::difference_type offset, RandomIterator<T, IsConst> iter) DECL_NOEXCEPT
+{
+    iter += offset;
+    return iter;
+}
+
 } // namespace screw
 #endif // !_ITERATOR_BASE_H_

@@ -69,6 +69,36 @@ public:
         return m_data[idx];
     }
 
+    DECL_NODISCARD DECL_CONSTEXPR11 bool operator==(const basic_string_view r) DECL_NOEXCEPT
+    {
+        return equal(r);
+    }
+
+    DECL_NODISCARD DECL_CONSTEXPR11 bool operator!=(const basic_string_view r) DECL_NOEXCEPT
+    {
+        return !equal(r);
+    }
+
+    DECL_NODISCARD DECL_CONSTEXPR11 bool operator<(const basic_string_view r) DECL_NOEXCEPT
+    {
+        return compare(r) < 0;
+    }
+
+    DECL_NODISCARD DECL_CONSTEXPR11 bool operator<=(const basic_string_view r) DECL_NOEXCEPT
+    {
+        return compare(r) <= 0;
+    }
+
+    DECL_NODISCARD DECL_CONSTEXPR11 bool operator>(const basic_string_view r) DECL_NOEXCEPT
+    {
+        return compare(r) > 0;
+    }
+
+    DECL_NODISCARD DECL_CONSTEXPR11 bool operator>=(const basic_string_view r) DECL_NOEXCEPT
+    {
+        return compare(r) >= 0;
+    }
+
     DECL_NODISCARD DECL_CONSTEXPR11 const_iterator begin() const DECL_NOEXCEPT
     {
 #ifndef NDEBUG
@@ -199,7 +229,7 @@ public:
         std::swap(m_size, other.m_size);
     }
 
-    DECL_CONSTEXPR20 size_type copy(const_pointer ptr, size_type count, const size_type offset = 0) const
+    DECL_CONSTEXPR11 size_type copy(Elem* const ptr, size_type count, const size_type offset = 0) const
     {
 #ifndef NDEBUG
         ASSERT(m_size > offset, "string_view subscript out of range");
@@ -220,12 +250,12 @@ public:
 
     DECL_CONSTEXPR11 bool equal(const basic_string_view other) const DECL_NOEXCEPT
     {
-        return Traits::compare(m_data, m_size, other.m_data, std::min(m_size, other.m_size)) == 0;
+        return m_size == other.m_size && Traits::compare(m_data, other.m_data, m_size) == 0;
     }
 
     DECL_NODISCARD DECL_CONSTEXPR11 int compare(const basic_string_view other) const DECL_NOEXCEPT
     {
-        const int ret = Traits::compare(m_data, m_size, other.m_data, std::min(m_size, other.m_size));
+        int ret = Traits::compare(m_data, other.m_data, std::min(m_size, other.m_size));
         return (ret != 0 ? ret : (m_size == other.m_size ? 0 : m_size < other.m_size ? -1 :
                                                                                        1));
     }
@@ -429,7 +459,173 @@ public:
     const_pointer m_data;
     size_type m_size;
 };
-using string_view = basic_string_view<char, std::char_traits<char>>;
+
+template <class Elem, class Traits, int = 1> // TRANSITION, VSO-409326
+DECL_NODISCARD DECL_CONSTEXPR11 bool operator==(const identity_t<basic_string_view<Elem, Traits>> l, const basic_string_view<Elem, Traits> r) DECL_NOEXCEPT
+{
+    return l.equal(r);
+}
+
+template <class Elem, class Traits, int = 2> // TRANSITION, VSO-409326
+DECL_NODISCARD DECL_CONSTEXPR11 bool operator==(const basic_string_view<Elem, Traits> l, const identity_t<basic_string_view<Elem, Traits>> r) DECL_NOEXCEPT
+{
+    return l.equal(r);
+}
+
+template <class Elem, class Traits, int = 1> // TRANSITION, VSO-409326
+DECL_NODISCARD constexpr bool operator!=(const identity_t<basic_string_view<Elem, Traits>> l, const basic_string_view<Elem, Traits> r) DECL_NOEXCEPT
+{
+    return !l.equal(r);
+}
+
+template <class Elem, class Traits, int = 2> // TRANSITION, VSO-409326
+DECL_NODISCARD constexpr bool operator!=(const basic_string_view<Elem, Traits> l, const identity_t<basic_string_view<Elem, Traits>> r) DECL_NOEXCEPT
+{
+    return !l.equal(r);
+}
+
+template <class Elem, class Traits, int = 1> // TRANSITION, VSO-409326
+DECL_NODISCARD constexpr bool operator<(const identity_t<basic_string_view<Elem, Traits>> l, const basic_string_view<Elem, Traits> r) DECL_NOEXCEPT
+{
+    return l.compare(r) < 0;
+}
+
+template <class Elem, class Traits, int = 2> // TRANSITION, VSO-409326
+DECL_NODISCARD constexpr bool operator<(const basic_string_view<Elem, Traits> l, const identity_t<basic_string_view<Elem, Traits>> r) DECL_NOEXCEPT
+{
+    return l.compare(r) < 0;
+}
+template <class Elem, class Traits, int = 1> // TRANSITION, VSO-409326
+DECL_NODISCARD constexpr bool operator<=(const identity_t<basic_string_view<Elem, Traits>> l, const basic_string_view<Elem, Traits> r) DECL_NOEXCEPT
+{
+    return l.compare(r) <= 0;
+}
+
+template <class Elem, class Traits, int = 2> // TRANSITION, VSO-409326
+DECL_NODISCARD constexpr bool operator<=(const basic_string_view<Elem, Traits> l, const identity_t<basic_string_view<Elem, Traits>> r) DECL_NOEXCEPT
+{
+    return l.compare(r) <= 0;
+}
+
+template <class Elem, class Traits, int = 1> // TRANSITION, VSO-409326
+DECL_NODISCARD constexpr bool operator>(const identity_t<basic_string_view<Elem, Traits>> l, const basic_string_view<Elem, Traits> r) DECL_NOEXCEPT
+{
+    return l.compare(r) > 0;
+}
+
+template <class Elem, class Traits, int = 2> // TRANSITION, VSO-409326
+DECL_NODISCARD constexpr bool operator>(const basic_string_view<Elem, Traits> l, const identity_t<basic_string_view<Elem, Traits>> r) DECL_NOEXCEPT
+{
+    return l.compare(r) > 0;
+}
+
+template <class Elem, class Traits, int = 1> // TRANSITION, VSO-409326
+DECL_NODISCARD constexpr bool operator>=(const identity_t<basic_string_view<Elem, Traits>> l, const basic_string_view<Elem, Traits> r) DECL_NOEXCEPT
+{
+    return l.compare(r) >= 0;
+}
+
+template <class Elem, class Traits, int = 2> // TRANSITION, VSO-409326
+DECL_NODISCARD constexpr bool operator>=(const basic_string_view<Elem, Traits> l, const identity_t<basic_string_view<Elem, Traits>> r) DECL_NOEXCEPT
+{
+    return l.compare(r) >= 0;
+}
+
+template <class Elem, class Traits, class SizeT>
+basic_ostream<Elem, Traits>& insert_string(
+    basic_ostream<Elem, Traits>& ostr,
+    const Elem* const data,
+    const SizeT size)
+{
+    using ostr_t                   = basic_ostream<Elem, Traits>;
+    typename ostr_t::iostate state = ostr_t::goodbit;
+
+    SizeT pad;
+    if (ostr.width() <= 0 || static_cast<SizeT>(ostr.width()) <= size)
+    {
+        pad = 0;
+    }
+    else
+    {
+        pad = static_cast<SizeT>(ostr.width()) - size;
+    }
+
+    const typename ostr_t::sentry ok(ostr);
+
+    if (!ok)
+    {
+        state |= ostr_t::badbit;
+    }
+    else
+    {
+        try
+        {
+            if ((ostr.flags() & ostr_t::adjustfield) != ostr_t::left)
+            {
+                for (; 0 < pad; --pad)
+                {
+                    if (Traits::eq_int_type(Traits::eof(), ostr.rdbuf()->sputc(ostr.fill())))
+                    {
+                        state |= ostr_t::badbit;
+                        break;
+                    }
+                }
+            }
+
+            if (state == ostr_t::goodbit && ostr.rdbuf()->sputn(data, static_cast<streamsize>(size)) != static_cast<streamsize>(size))
+            {
+                state |= ostr_t::badbit;
+            }
+            else
+            {
+                for (; 0 < pad; --pad)
+                {
+                    if (Traits::eq_int_type(Traits::eof(), ostr.rdbuf()->sputc(ostr.fill())))
+                    {
+                        state |= ostr_t::badbit;
+                        break;
+                    }
+                }
+            }
+
+            ostr.width(0);
+        } catch (...)
+        {
+            ostr.setstate(ostr_t::badbit, true);
+        }
+    }
+
+    ostr.setstate(state);
+    return ostr;
+}
+
+template <class Elem, class Traits>
+basic_ostream<Elem, Traits>& operator<<(basic_ostream<Elem, Traits>& ostr, const basic_string_view<Elem, Traits> str)
+{
+    return insert_string(ostr, str.data(), str.size());
+}
+template <class Elem, class Traits>
+struct hash<basic_string_view<Elem, Traits>>
+{
+    using argument_type = basic_string_view<Elem, Traits>;
+    using result_type   = size_t;
+
+    DECL_NODISCARD size_t operator()(const basic_string_view<Elem, Traits> value) const noexcept
+    {
+        size_t val             = 14695981039346656037ULL;
+        const size_t size      = value.size();
+        const char* const data = value.data();
+        for (size_t idx = 0; idx < size; ++idx)
+        {
+            val ^= static_cast<size_t>(data[idx]);
+            val *= 1099511628211ULL;
+        }
+        return val;
+    }
+};
+
+using string_view  = basic_string_view<char, std::char_traits<char>>;
+using wstring_view = basic_string_view<wchar_t, std::char_traits<wchar_t>>;
 } // namespace std
 #endif
 #endif // !_STRING_VIEW_H_

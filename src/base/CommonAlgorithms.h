@@ -9,10 +9,15 @@ namespace screw {
 template <class T>
 DECL_NODISCARD DECL_CONSTEXPR11 static size_t find(const T* curData, size_t curSize, size_t offset, const T* data, size_t size) DECL_NOEXCEPT
 {
-    if (offset > curSize || size + offset > curSize || size == 0)
+    if (offset > curSize || size + offset > curSize)
     {
         return SIZE_MAX;
     }
+    if (size == 0)
+    {
+        return offset;
+    }
+  
     auto replacedLastPos = size - 1;
     auto back            = data[replacedLastPos];
 
@@ -58,9 +63,10 @@ DECL_NODISCARD DECL_CONSTEXPR11 static size_t find(const T* curData, size_t curS
 template <class T>
 DECL_NODISCARD DECL_CONSTEXPR11 static size_t rfind(const T* curData, size_t curSize, size_t offset, const T* data, const size_t size) DECL_NOEXCEPT
 {
-    if (offset > curSize || size + offset > curSize || size == 0)
+    offset = std::min(offset, curSize);
+    if (size == 0)
     {
-        return SIZE_MAX;
+        return offset;
     }
 
     auto replacedLastPos = size - 1;
@@ -69,7 +75,7 @@ DECL_NODISCARD DECL_CONSTEXPR11 static size_t rfind(const T* curData, size_t cur
 
     size_t skip = 0;
 
-    auto cur = curData + curSize - offset - size;
+    auto cur = curData + offset;
     auto end = curData;
 
     while (cur >= end)
@@ -131,12 +137,13 @@ DECL_NODISCARD DECL_CONSTEXPR11 static size_t find_first_of(const T* curData, si
 template <class T>
 DECL_NODISCARD DECL_CONSTEXPR11 static size_t find_last_of(const T* curData, size_t curSize, size_t offset, const T* data, size_t size) DECL_NOEXCEPT
 {
-    if (offset > curSize || size == 0)
+    offset = std::min(offset, curSize - 1);
+    if (size == 0)
     {
-        return SIZE_MAX;
+        return offset;
     }
 
-    auto cur = curData + curSize - offset - 1;
+    auto cur = curData + offset ;
     auto end = curData;
 
     while (cur >= end)
@@ -170,18 +177,19 @@ DECL_NODISCARD DECL_CONSTEXPR11 static size_t find_first_not_of(const T* curData
         cur++;
     }
 
-    return cur - curData;
+    return SIZE_MAX;
 }
 
 template <class T>
 DECL_NODISCARD DECL_CONSTEXPR11 static size_t find_last_not_of(const T* curData, size_t curSize, size_t offset, const T* data, size_t size) DECL_NOEXCEPT
 {
-    if (offset > curSize || size == 0)
+    offset = std::min(offset, curSize - 1);
+    if (size == 0)
     {
-        return SIZE_MAX;
+        return offset;
     }
 
-    auto cur = curData + curSize - offset - 1;
+    auto cur = curData + offset;
     auto end = curData;
 
     while (cur >= end)

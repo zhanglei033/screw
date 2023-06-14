@@ -242,6 +242,15 @@ inline void unreachable()
 
 #pragma region À©Õ¹
 
+template <class T>
+struct identity
+{
+    using type = T;
+};
+template <class T>
+using identity_t  = typename identity<T>::type;
+
+
 #pragma region meta
 
 template <class... Types>

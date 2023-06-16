@@ -23,6 +23,7 @@
     <ClInclude Include="..\..\src\base\CommonAlgorithms.h" />
     <ClInclude Include="..\..\src\base\IteratorBase.h" />
     <ClInclude Include="..\..\src\base\Platform.h" />
+    <ClInclude Include="..\..\src\base\StaticString.h" />
     <ClInclude Include="..\..\src\base\STL.h" />
     <ClInclude Include="..\..\src\base\StringView.h" />
     <ClInclude Include="..\..\src\base\TypesDef.h" />
@@ -40,11 +41,21 @@
     <ClInclude Include="..\..\src\googletest\gtest\gtest_pred_impl.h" />
     <ClInclude Include="..\..\src\googletest\gtest\gtest_prod.h" />
     <ClInclude Include="..\..\src\reflection\Comparison.h" />
+    <ClInclude Include="..\..\src\reflection\compile_time\StringType.h" />
+    <ClInclude Include="..\..\src\reflection\compile_time\TypeInfo.h" />
+    <ClInclude Include="..\..\src\reflection\compile_time\TypeInfoDetail.h" />
+    <ClInclude Include="..\..\src\reflection\TypeMetaData.h" />
+    <ClInclude Include="..\..\src\reflection\ReflBase.h" />
     <ClInclude Include="..\..\src\reflection\Registration.h" />
+    <ClInclude Include="..\..\src\reflection\RegistrationManager.h" />
     <ClInclude Include="..\..\src\reflection\RuntimeTypeData.h" />
     <ClInclude Include="..\..\src\reflection\RuntimeTypeInfo.h" />
+    <ClInclude Include="..\..\src\reflection\StaticSymbol.h" />
+    <ClInclude Include="..\..\src\reflection\TypeConverter.h" />
+    <ClInclude Include="..\..\src\reflection\TypeName.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\src\reflection\Registration.cpp" />
     <ClCompile Include="..\..\src\reflection\RuntimeTypeInfo.cpp" />
     <ClCompile Include="..\..\src\reflection\test.cpp" />
     <ClCompile Include="..\..\src\test\StringViewTest.cpp">
@@ -131,7 +142,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <LanguageStandard>stdcpp14</LanguageStandard>
+      <LanguageStandard>Default</LanguageStandard>
       <AdditionalIncludeDirectories>$(SolutionDir)..\src;$(SolutionDir)..\src\googletest</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
@@ -149,7 +160,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <LanguageStandard>stdcpp14</LanguageStandard>
+      <LanguageStandard>Default</LanguageStandard>
       <AdditionalIncludeDirectories>$(SolutionDir)..\src;$(SolutionDir)..\src\googletest</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
@@ -167,7 +178,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <LanguageStandard>stdcpp14</LanguageStandard>
+      <LanguageStandard>Default</LanguageStandard>
       <AdditionalIncludeDirectories>$(SolutionDir)..\src;$(SolutionDir)..\src\googletest</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
@@ -185,7 +196,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <LanguageStandard>stdcpp14</LanguageStandard>
+      <LanguageStandard>Default</LanguageStandard>
       <AdditionalIncludeDirectories>$(SolutionDir)..\src;$(SolutionDir)..\src\googletest</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>

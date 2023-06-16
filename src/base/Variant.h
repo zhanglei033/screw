@@ -28,7 +28,7 @@ public:
     }
 };
 
-#define throw_bad_variant_access() ThrowException(false, "bad variant access")
+#define throw_bad_variant_access() throw std::bad_variant_access{};
 
 #pragma endregion
 

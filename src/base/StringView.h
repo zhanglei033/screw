@@ -11,7 +11,7 @@
 #include <string>
 
 namespace std {
-template <class Elem, class Traits>
+template <class Elem, class Traits = std::char_traits<Elem>>
 class basic_string_view
 {
 public:

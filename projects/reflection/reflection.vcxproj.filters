@@ -22,6 +22,9 @@
     <Filter Include="头文件\gtest">
       <UniqueIdentifier>{06cad896-345c-4f8c-8b4a-c16ae1317b3a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="头文件\compile_time">
+      <UniqueIdentifier>{bdb2f82f-b0d5-42bd-a807-b33e79e82280}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\base\Platform.h">
@@ -96,6 +99,36 @@
     <ClInclude Include="..\..\src\reflection\Registration.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\src\reflection\StaticSymbol.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\reflection\TypeMetaData.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\reflection\RegistrationManager.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\reflection\TypeName.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\base\StaticString.h">
+      <Filter>头文件\base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\reflection\ReflBase.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\reflection\TypeConverter.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\reflection\compile_time\TypeInfo.h">
+      <Filter>头文件\compile_time</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\reflection\compile_time\StringType.h">
+      <Filter>头文件\compile_time</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\reflection\compile_time\TypeInfoDetail.h">
+      <Filter>头文件\compile_time</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\reflection\test.cpp">
@@ -109,6 +142,9 @@
     </ClCompile>
     <ClCompile Include="..\..\src\test\StringViewTest.cpp">
       <Filter>源文件\test</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\reflection\Registration.cpp">
+      <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

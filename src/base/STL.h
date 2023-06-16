@@ -36,6 +36,11 @@ DECL_INLINE_VAR DECL_CONSTEXPR11 bool is_in_place_index_specialization<in_place_
 #pragma endregion
 
 #pragma region destroy at
+#if COMPILER_TYPE_TAG != COMPILER_MSVC_TAG
+template <class T>
+DECL_INLINE_VAR DECL_CONSTEXPR11 bool is_array_v = is_array<T>::value;
+#endif
+
 template <class T>
 DECL_CONSTEXPR11 void destroy_at(const T* localtion) noexcept
 {
@@ -80,9 +85,7 @@ struct invoke_traits_nonzero
 };
 
 template <class Callable, class... Args>
-using select_invoke_traits = conditional_t<sizeof...(Args) == 0,
-                                           invoke_traits_zero<void, Callable>,
-                                           invoke_traits_nonzero<void, Callable, Args...>>;
+using select_invoke_traits = conditional_t<sizeof...(Args) == 0, invoke_traits_zero<void, Callable>, invoke_traits_nonzero<void, Callable, Args...>>;
 
 template <class Callable, class... Args>
 struct invoke_result : select_invoke_traits<Callable, Args...>
@@ -141,11 +144,40 @@ struct swappable_with_helper<T1, T2, void_t<decltype(swap(std::declval<T1>(), st
 {
 };
 
+#if COMPILER_TYPE_TAG != COMPILER_MSVC_TAG
+template <bool FirstValue, class First, class... Rest>
+struct conjunction_impl
+{
+    using type = First;
+};
+
+template <class True, class Next, class... Rest>
+struct conjunction_impl<true, True, Next, Rest...>
+{
+    using type = typename conjunction_impl<Next::value, Next, Rest...>::type;
+};
+
+template <class... Traits>
+struct conjunction : true_type
+{
+};
+template <class First, class... Rest>
+struct conjunction<First, Rest...> : conjunction_impl<First::value, First, Rest...>::type
+{
+};
+
+template <class... Traits>
+DECL_INLINE_VAR constexpr bool conjunction_v = conjunction<Traits...>::value;
+
+template <bool Val>
+using bool_constant = integral_constant<bool, Val>;
+#endif
+
+#if COMPILER_TYPE_TAG == COMPILER_MSVC_TAG
 template <class T1, class T2>
 struct is_swappable_with : bool_constant<conjunction_v<swappable_with_helper<T1, T2>, swappable_with_helper<T2, T1>>>
 {
 };
-
 template <class T>
 struct is_swappable : is_swappable_with<add_lvalue_reference_t<T>, add_lvalue_reference_t<T>>::type
 {
@@ -157,12 +189,15 @@ DECL_INLINE_VAR DECL_CONSTEXPR11 bool is_swappable_with_v = conjunction_v<swappa
 template <class T>
 DECL_INLINE_VAR DECL_CONSTEXPR11 bool is_swappable_v = is_swappable<T>::value;
 
+#endif
+
 template <class T1, class T2>
 struct swap_cannot_throw : bool_constant<noexcept(swap(std::declval<T1>(), std::declval<T2>())) //
-                                             && noexcept(swap(std::declval<T2>(), std::declval<T1>()))>
+                                         && noexcept(swap(std::declval<T2>(), std::declval<T1>()))>
 {
 };
 
+#if COMPILER_TYPE_TAG == COMPILER_MSVC_TAG
 template <class T1, class T2>
 struct is_nothrow_swappable_with : bool_constant<conjunction_v<is_swappable_with<T1, T2>, swap_cannot_throw<T1, T2>>>
 {
@@ -170,19 +205,29 @@ struct is_nothrow_swappable_with : bool_constant<conjunction_v<is_swappable_with
 
 template <class T1, class T2>
 DECL_INLINE_VAR DECL_CONSTEXPR11 bool is_nothrow_swappable_with_v = is_nothrow_swappable_with<T1, T2>::value;
+#endif
 
 template <class _Ty>
 struct is_nothrow_swappable_impl : is_nothrow_swappable_with<add_lvalue_reference_t<_Ty>, add_lvalue_reference_t<_Ty>>::type
 {
 };
-
+#if COMPILER_TYPE_TAG == COMPILER_MSVC_TAG
 template <class T>
 struct is_nothrow_swappable : is_nothrow_swappable_impl<T>::type
 {
 };
 template <class T>
 DECL_INLINE_VAR DECL_CONSTEXPR11 bool is_nothrow_swappable_v = is_nothrow_swappable<T>::value;
+#endif
 #pragma endregion
+
+template <class T>
+struct identity
+{
+    using type = T;
+};
+template <class T>
+using identity_t = typename identity<T>::type;
 
 struct monostate
 {
@@ -202,22 +247,9 @@ template <class T>
 using remove_cvref_t = typename remove_cvref<T>::type;
 #pragma endregion
 
-#pragma region iterator
-template <class Iter>
-DECL_NODISCARD DECL_CONSTEXPR11 void* voidptr_iter(Iter iter) noexcept
-{
-    if constexpr (is_pointer_v<Iter>)
-    {
-        return const_cast<void*>(static_cast<const volatile void*>(iter));
-    }
-    else
-    {
-        return const_cast<void*>(static_cast<const volatile void*>(std::addressof(*iter)));
-    }
-}
-#pragma endregion
-
 #pragma region construst at
+template <class Iter>
+DECL_NODISCARD DECL_CONSTEXPR11 void* voidptr_iter(Iter iter) noexcept;
 template <class T, class... Types, class = std::void_t<decltype(::new (std::declval<void*>()) T(std::declval<Types>()...))>>
 DECL_CONSTEXPR11 T* construct_at(const T* localtion, Types&&... Args) noexcept(noexcept(::new (std::voidptr_iter(localtion)) T(std::forward<Types>(Args)...)))
 {
@@ -233,7 +265,7 @@ inline void unreachable()
 {
 #ifdef __GNUC__ // GCC, Clang, ICC
     __builtin_unreachable();
-#elifdef _MSC_VER // MSVC
+#elif defined(_MSC_VER) // MSVC
     __assume(false);
 #endif
 }
@@ -241,15 +273,20 @@ inline void unreachable()
 #pragma endregion
 
 #pragma region À©Õ¹
-
-template <class T>
-struct identity
+#pragma region iterator
+template <class Iter>
+DECL_NODISCARD DECL_CONSTEXPR11 void* voidptr_iter(Iter iter) noexcept
 {
-    using type = T;
-};
-template <class T>
-using identity_t  = typename identity<T>::type;
-
+    if constexpr (is_pointer<Iter>::value)
+    {
+        return const_cast<void*>(static_cast<const volatile void*>(iter));
+    }
+    else
+    {
+        return const_cast<void*>(static_cast<const volatile void*>(std::addressof(*iter)));
+    }
+}
+#pragma endregion
 
 #pragma region meta
 
@@ -422,6 +459,11 @@ struct meta_list_find_index
     using type = integral_constant<size_t, meta_list_npos>;
 };
 
+#if COMPILER_TYPE_TAG != COMPILER_MSVC_TAG
+template <class T1, class T2>
+DECL_INLINE_VAR DECL_CONSTEXPR11 bool is_same_v = is_same<T1, T2>::value;
+#endif
+
 template <template <class...> class List, class First, class... Rest, class T>
 struct meta_list_find_index<List<First, Rest...>, T>
 {
@@ -479,9 +521,7 @@ struct meta_list_extract_idx<List<First, Rest...>, ExIdx, CurIdx, enable_if_t<(s
 {
     using rest_type = typename meta_list_extract_idx<List<Rest...>, ExIdx, CurIdx + 1>::type;
 
-    using type = std::conditional_t<ExIdx == CurIdx,
-                                    rest_type,
-                                    meta_list_push_front_t<rest_type, First>>;
+    using type = std::conditional_t<ExIdx == CurIdx, rest_type, meta_list_push_front_t<rest_type, First>>;
 };
 
 template <class List, size_t ExIdx>
@@ -582,17 +622,16 @@ struct meta_cartesian_product_impl<List1<List2<Items...>, Lists...>>
     using type = meta_join<List1<meta_transform<meta_func_bind<meta_func<meta_list_push_front>, Items>, meta_cartesian_product<List1<Lists...>>>...>>;
 };
 
-
 #pragma endregion
 
 #pragma region construct or destroy in place
 template <class T, class... Args>
-DECL_CONSTEXPR11 void construct_in_place(T& obj, Args&&... args) noexcept(is_nothrow_constructible_v<T, Args...>)
+DECL_CONSTEXPR11 void construct_in_place(T& obj, Args&&... args) noexcept(is_nothrow_constructible<T, Args...>::value)
 {
 #if _HAS_CXX20
     if (std::is_constant_evaluated())
     {
-        std::construct_at(std addressof(obj), std::forward<Args>(args)...);
+        std::construct_at(std::addressof(obj), std::forward<Args>(args)...);
     }
     else
 #endif
@@ -637,6 +676,11 @@ DECL_INLINE_VAR DECL_CONSTEXPR11 bool is_iterator_v = false;
 template <class T>
 DECL_INLINE_VAR DECL_CONSTEXPR11 bool is_iterator_v<T, void_t<iter_category_t<T>>> = true;
 
+#if COMPILER_TYPE_TAG != COMPILER_MSVC_TAG
+template <class T1, class T2>
+DECL_INLINE_VAR DECL_CONSTEXPR11 bool is_convertible_v = is_convertible<T1, T2>::value;
+#endif
+
 template <class _Iter>
 DECL_INLINE_VAR DECL_CONSTEXPR11 bool is_random_iter_v = is_convertible_v<iter_category_t<_Iter>, random_access_iterator_tag>;
 
@@ -662,7 +706,7 @@ DECL_NODISCARD DECL_CONSTEXPR11 auto get_unwrapped(Iter&& iter) noexcept
 {
     if constexpr (std::is_iterator_v<Iter>)
     {
-        if constexpr (std::is_pointer_v<std::decay_t<Iter>>)
+        if constexpr (std::is_pointer<std::decay_t<Iter>>::value)
         {
             return iter;
         }
@@ -708,7 +752,7 @@ struct tuple_push_front
 template <class... Types, class First>
 struct tuple_push_front<std::tuple<Types...>, First>
 {
-    using type = conditional_t<is_void_v<First>, tuple<Types...>, std::tuple<First, Types...>>;
+    using type = conditional_t<is_void<First>::value, tuple<Types...>, std::tuple<First, Types...>>;
 };
 template <class T, class First, class = enable_if_t<is_tuple_v<T>>>
 using tuple_push_front_t = typename tuple_push_front<T, First>::type;
@@ -720,7 +764,7 @@ struct tuple_push_back
 template <class... Types, class Last>
 struct tuple_push_back<std::tuple<Types...>, Last>
 {
-    using type = conditional_t<is_void_v<Last>, tuple<Types...>, std::tuple<Types..., Last>>;
+    using type = conditional_t<is_void<Last>::value, tuple<Types...>, std::tuple<Types..., Last>>;
 };
 template <class T, class Last, class = enable_if_t<is_tuple_v<T>>>
 using tuple_push_back_t = typename tuple_push_back<T, Last>::type;
@@ -735,6 +779,14 @@ template <class T>
 struct has_adl_swap<T, void_t<decltype(std::swap(std::declval<T&>(), std::declval<T&>()))>> : true_type
 {
 };
+#if COMPILER_TYPE_TAG != COMPILER_MSVC_TAG
+template <class Trait>
+struct negation : bool_constant<!static_cast<bool>(Trait::value)>
+{
+};
+template <class Trait>
+DECL_INLINE_VAR constexpr bool negation_v = negation<Trait>::value;
+#endif
 
 template <class T>
 DECL_INLINE_VAR DECL_CONSTEXPR11 bool is_trivially_swappable_v = conjunction_v<is_trivially_destructible<T>,
@@ -773,7 +825,7 @@ template <class First, class... Rest, class T>
 struct constructible_types<std::tuple<First, Rest...>, T>
 {
     using cur_type      = typename constructible_types<std::tuple<Rest...>, T>::type;
-    using cur_push_type = std::conditional_t<std::is_constructible_v<First, T>, First, void>;
+    using cur_push_type = std::conditional_t<std::is_constructible<First, T>::value, First, void>;
     using type          = typename std::tuple_push_back<cur_type, cur_push_type>::type;
 };
 
@@ -786,8 +838,35 @@ using constructible_types_t = typename constructible_types<Tuple, T>::type;
 #pragma endregion
 
 #pragma region other
+#if COMPILER_TYPE_TAG != COMPILER_MSVC_TAG
+template <bool FirstValue, class First, class... Rest>
+struct disjunction_impl
+{
+    using type = First;
+};
+
+template <class False, class Next, class... Rest>
+struct disjunction_impl<false, False, Next, Rest...>
+{
+    using type = typename disjunction_impl<Next::value, Next, Rest...>::type;
+};
+
+template <class... Traits>
+struct disjunction : false_type
+{
+}; 
+
+template <class First, class... Rest>
+struct disjunction<First, Rest...> : disjunction_impl<First::value, First, Rest...>::type
+{
+};
+
+template <class... Traits>
+DECL_INLINE_VAR constexpr bool disjunction_v = disjunction<Traits...>::value;
+#endif
+
 template <class T, class... Types>
-DECL_INLINE_VAR DECL_CONSTEXPR11 bool is_any_of_v = disjunction_v<is_same<T, Types>...>;
+DECL_INLINE_VAR DECL_CONSTEXPR11 bool is_any_of_v = disjunction<is_same<T, Types>...>::value;
 
 template <class T, class... Types>
 DECL_INLINE_VAR DECL_CONSTEXPR11 bool is_only_of_v = std::meta_list_count_v<std::meta_list<Types...>, T> == 1;

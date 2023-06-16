@@ -5,7 +5,10 @@
 namespace screw {
 namespace reflection {
 template <typename T>
-using is_comparable = std::integral_constant<bool, std::is_same<T, std::string>::value || std::is_same<T, string_view>::value || std::is_arithmetic<T>::value || std::is_enum<T>::value || std::is_same<T, std::nullptr_t>::value || std::is_pointer<T>::value>;
+using is_comparable = std::integral_constant<bool, std::is_same<T, std::string>::value || std::is_same<T, std::string_view>::value || std::is_arithmetic<T>::value || std::is_enum<T>::value || std::is_same<T, std::nullptr_t>::value || std::is_pointer<T>::value>;
+
+template <typename T>
+DECL_INLINE_VAR DECL_CONSTEXPR11 auto is_comparable_v = is_comparable<T>::value;
 
 }} // namespace screw::reflection
 

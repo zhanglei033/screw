@@ -119,35 +119,40 @@ struct ElementTraits<C, T(C::*), NameT>
     using element_category = MemberVariableTag; // 元素类别-成员变量
     using element_type     = T(C::*);           // 成员变量类型
 };
+
+struct ElementValueBase
+{
+    DECL_CONSTEXPR11 std::string_view GetName() const
+    {
+        return StringTName<STRT("")>::value;
+    }
+};
+
 template <class C, class T, class NameT>
 struct ElementValue
 {
     using traits_type  = ElementTraits<C, T, NameT>;
-    using element_type = typename traits_type::element_type;
     using name_type    = typename traits_type::name_type;
+    using element_type = typename traits_type::element_type;
 
-    constexpr ElementValue(element_type value) DECL_NOEXCEPT
+    DECL_CONSTEXPR11 ElementValue(element_type value) DECL_NOEXCEPT
         : m_value(value) {}
+    DECL_CONSTEXPR11 ElementValue(const ElementValue& value) DECL_NOEXCEPT
+        : m_value(value.m_value) {}
 
     DECL_STATIC_CONSTEXPR auto m_name = StringTName<name_type>::value;
     element_type m_value;
 };
 
-// Element
+// Element Traits Extract
 template <class Element>
-struct ElementFacade
+struct ElementTraitsExtract
 {
-    using traits_type  = typename Element::traits_type;
-    using element_type = typename traits_type::element_type;
-    using name_type    = typename traits_type::name_type;
-
-    DECL_CONSTEXPR11 ElementFacade(Element elem) DECL_NOEXCEPT
-        : m_elem{elem} {}
-
-    DECL_CONSTEXPR11 name_type& GetName() DECL_NOEXCEPT { return m_elem.m_name; }
-    DECL_CONSTEXPR11 element_type& GetValue() DECL_NOEXCEPT { return m_elem.m_value; }
-
-    Element m_elem;
+    using traits_type      = typename Element::traits_type;
+    using class_type       = typename traits_type::class_type;
+    using name_type        = typename traits_type::name_type;
+    using element_category = typename traits_type::element_category;
+    using element_type     = typename traits_type::element_type;
 };
 
 template <class... Elements>
@@ -155,26 +160,24 @@ struct ElementList
 {
     using element_list = std::tuple<Elements...>;
 
-    static constexpr size_t m_size = std::tuple_size_v<element_list>;
+    DECL_STATIC_CONSTEXPR size_t m_size = std::tuple_size_v<element_list>;
     element_list m_elements;
+
+    template <class StringT>
+    DECL_STATIC_CONSTEXPR bool is_contains_v = std::is_any_of_v<StringT, typename ElementTraitsExtract<Elements>::name_type...>;
 
     constexpr ElementList(Elements... elements)
         : m_elements{elements...} {}
 
     template <class Visitor>
-    static constexpr auto ForEach(Visitor visitor) DECL_NOEXCEPT
+    DECL_CONSTEXPR11 auto ForEach(Visitor visitor) const DECL_NOEXCEPT
     {
         return ForEach<0>(visitor);
-    }
-    template <class StringT>
-    static constexpr bool Contains(StringT = {}) DECL_NOEXCEPT
-    {
-        return std::is_any_of_v<StringT, typename Elements::name_type...>;
     }
 
 private:
     template <size_t Idx, class Visitor>
-    static constexpr auto ForEach(Visitor visitor) DECL_NOEXCEPT
+    DECL_CONSTEXPR11 auto ForEach(Visitor visitor) const DECL_NOEXCEPT
     {
         if constexpr (Idx == m_size)
         {
@@ -182,7 +185,8 @@ private:
         }
         else
         {
-            visitor(ElementFacade<std::tuple_element_t<Idx, element_list>>(std::get<Idx>(m_elements)));
+            // visitor(ElementTraitsFacade<std::tuple_element_t<Idx, element_list>>(std::get<Idx>(m_elements)));
+            visitor(std::get<Idx>(m_elements));
             return ForEach<Idx + 1>(visitor);
         }
     }
@@ -191,24 +195,23 @@ private:
 // ValueType是ElementValue的特化
 // PropertysType是PropertyList的特化
 template <class ValueType, class PropertysType>
-struct MemberVariable
+struct MemberVariable : ValueType
 {
-    using category = MemberVariableTag;
+    using traits_type = typename ValueType::traits_type;
 
-    DECL_CONSTEXPR11 MemberVariable(ValueType value, PropertysType propertys = {}) DECL_NOEXCEPT
-        : m_value{value},
+    DECL_CONSTEXPR11 MemberVariable(ValueType value, PropertysType propertys) DECL_NOEXCEPT
+        : ValueType{value},
           m_propertys{propertys} {}
 
-    ValueType m_value;
     PropertysType m_propertys;
 };
 
- template <class... Variables>
+template <class... Variables>
 struct VariableList : ElementList<Variables...>
 {
-     DECL_CONSTEXPR11 VariableList(Variables... variables)
+    DECL_CONSTEXPR11 VariableList(Variables... variables)
         : ElementList<Variables...>{variables...} {}
- };
+};
 //
 // template <class C, class T, class NameT, class PropertyList>
 // struct Method : ElementTraits<C, T, NameT>
@@ -236,14 +239,12 @@ struct VariableList : ElementList<Variables...>
 //         : ElementTraits<C, T, NameT>(v) {}
 // };
 //
-// template <class... Propertys>
-// struct PropertyList : TraitList<Propertys...>
-//{
-//     constexpr PropertyList()
-//         : TraitList<Propertys...>{} {}
-//     constexpr PropertyList(Propertys&&... ps)
-//         : TraitList<Propertys...>{ps...} {}
-// };
+template <class... Propertys>
+struct PropertyList : ElementList<Propertys...>
+{
+    DECL_CONSTEXPR11 PropertyList(Propertys... propertys)
+        : ElementList<Propertys...>{propertys...} {}
+};
 
 }
 }}     // namespace screw::reflection::detail

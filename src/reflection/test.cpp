@@ -17,21 +17,37 @@ struct Vec
 template <>
 struct TypeInfo<Vec> : TypeInfoBase<Vec>
 {
- 
+    DECL_STATIC_CONSTEXPR auto variables = MakeVariables(
+        MakeMemberVariable(&Type::v1, STRT("v1"){}),
+        MakeMemberVariable(&Type::v2, STRT("v2"){}));
 };
 
 #include <tuple>
 
-
 int main()
 {
-     //TypeInfo<Vec>::variables.size;
-     auto t1 = std::chrono::system_clock::now().time_since_epoch().count();
-    // 
+    TypeInfo<Vec>::variables.m_size;
+    TypeInfo<Vec>::variables.is_contains_v<STRT("v1")>;
+
+    std::tuple_element_t<0, decltype(TypeInfo<Vec>::variables.m_elements)>::traits_type;
+
+     TypeInfo<Vec>::variables.ForEach([](auto ins) {
+        std::cout << ins << std::endl;
+        //std::cout << ins.GetValue(); << std::endl;
+        //Vec v;
+        //std::invoke(ins.GetValue(), v) = 10;
+    });
+
+    
+
+    std::get<0>(TypeInfo<Vec>::variables.m_elements);
+
+    auto t1 = std::chrono::system_clock::now().time_since_epoch().count();
+    //
     // TypeInfo<Vec>::variables.ForEach([](auto&& ins) {
     //     std::cout << ins.name << std::endl;
     // });
-    // 
+    //
     // const auto b1 = TypeInfo<Vec>::variables.Contains<STRT("v1")>();
     // const auto b2 = TypeInfo<Vec>::variables.Contains<STRT("v2")>();
 

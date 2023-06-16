@@ -8,9 +8,10 @@ namespace screw {
 namespace reflection {
 template <class T>
 struct TypeInfo;
-template <class Type, class... Bases>
+template <class TypeT, class... Bases>
 struct TypeInfoBase
 {
+    using Type     = TypeT;
     using TypeInfo = TypeInfo<Type>;
     // using bases_type      = detail::MetaListPro<Bases...>;
     // using bases_type_info = detail::MetaListPro<TypeInfo<Bases>...>;
@@ -64,6 +65,17 @@ struct TypeInfoBase
     DECL_STATIC_CONSTEXPR auto MakeElementValue(T(Type::*value), NameT) DECL_NOEXCEPT
     {
         return detail::ElementValue<Type, T(Type::*), NameT>(value);
+    }
+    template <class T, class NameT, class PropertysType = detail::PropertyList<>>
+    DECL_STATIC_CONSTEXPR auto MakeMemberVariable(T value, NameT, PropertysType propertys = {}) DECL_NOEXCEPT
+    {
+        auto elementValue = MakeElementValue(value, NameT{});
+        return detail::MemberVariable<decltype(elementValue), PropertysType>(elementValue, propertys);
+    }
+    template <class... Variables>
+    DECL_STATIC_CONSTEXPR auto MakeVariables(Variables... variables) DECL_NOEXCEPT
+    {
+        return detail::VariableList<Variables...>(variables...);
     }
 
     template <class Func>

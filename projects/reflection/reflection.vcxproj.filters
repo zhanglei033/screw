@@ -120,13 +120,10 @@
     <ClInclude Include="..\..\src\reflection\TypeConverter.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\reflection\compile_time\TypeInfo.h">
+    <ClInclude Include="..\..\src\reflection\static\TypeInfoDetail.h">
       <Filter>头文件\compile_time</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\reflection\compile_time\StringType.h">
-      <Filter>头文件\compile_time</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\reflection\compile_time\TypeInfoDetail.h">
+    <ClInclude Include="..\..\src\reflection\static\StringType.h">
       <Filter>头文件\compile_time</Filter>
     </ClInclude>
   </ItemGroup>
@@ -146,5 +143,10 @@
     <ClCompile Include="..\..\src\reflection\Registration.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\src\reflection\static\TypeInfo.h">
+      <Filter>头文件\compile_time</Filter>
+    </None>
   </ItemGroup>
 </Project>

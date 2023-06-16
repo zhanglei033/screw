@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -41,9 +41,8 @@
     <ClInclude Include="..\..\src\googletest\gtest\gtest_pred_impl.h" />
     <ClInclude Include="..\..\src\googletest\gtest\gtest_prod.h" />
     <ClInclude Include="..\..\src\reflection\Comparison.h" />
-    <ClInclude Include="..\..\src\reflection\compile_time\StringType.h" />
-    <ClInclude Include="..\..\src\reflection\compile_time\TypeInfo.h" />
-    <ClInclude Include="..\..\src\reflection\compile_time\TypeInfoDetail.h" />
+    <ClInclude Include="..\..\src\reflection\static\StringType.h" />
+    <ClInclude Include="..\..\src\reflection\static\TypeInfoDetail.h" />
     <ClInclude Include="..\..\src\reflection\TypeMetaData.h" />
     <ClInclude Include="..\..\src\reflection\ReflBase.h" />
     <ClInclude Include="..\..\src\reflection\Registration.h" />
@@ -65,6 +64,9 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="..\..\src\test\VariantTest.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\src\reflection\static\TypeInfo.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>

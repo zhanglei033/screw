@@ -9,52 +9,52 @@ namespace detail {
 DECL_INLINE_VAR DECL_CONSTEXPR11 char StringTypeEnd = '\0';
 
 template <char... C>
-struct StringT
+struct StringType
 {
 };
 template <class StringType, char Back>
-struct StringTPushBack;
+struct StringTypePushBack;
 template <template <char...> class StringType, char... C, char Back>
-struct StringTPushBack<StringType<C...>, Back>
+struct StringTypePushBack<StringType<C...>, Back>
 {
     using type = std::conditional_t<Back == StringTypeEnd, StringType<C...>, StringType<C..., Back>>;
 };
 template <class StringType, char Back>
-using StringTPushBackType = typename StringTPushBack<StringType, Back>::type;
+using StringTypePushBackType = typename StringTypePushBack<StringType, Back>::type;
 
 template <class StringType, char... C>
-struct StringTCreateImpl
+struct StringTypeCreateImpl
 {
     using type = StringType;
 };
 template <class StringType, char First, char... Rest>
-struct StringTCreateImpl<StringType, First, Rest...>
+struct StringTypeCreateImpl<StringType, First, Rest...>
 {
     using type = std::conditional_t<First == StringTypeEnd,
                                     StringType,
                                     std::conditional_t<sizeof...(Rest) == 0,
-                                                       StringTPushBackType<StringType, First>,
-                                                       typename StringTCreateImpl<StringTPushBackType<StringType, First>, Rest...>::type>>;
+                                                       StringTypePushBackType<StringType, First>,
+                                                       typename StringTypeCreateImpl<StringTypePushBackType<StringType, First>, Rest...>::type>>;
 };
 template <char... C>
-struct StringTCreate
+struct StringTypeCreate
 {
-    using type = typename StringTCreateImpl<StringT<>, C...>::type;
+    using type = typename StringTypeCreateImpl<StringType<>, C...>::type;
 };
 
 template <class StringType>
-struct StringTLen;
+struct StringTypeLen;
 
 template <template <char...> class StringType, char... C>
-struct StringTLen<StringType<C...>> : std::integral_constant<size_t, sizeof...(C)>
+struct StringTypeLen<StringType<C...>> : std::integral_constant<size_t, sizeof...(C)>
 {
 };
 
 template <class StringType>
-struct StringTName;
+struct StringTypeName;
 
 template <template <char...> class StringType, char... C>
-struct StringTName<StringType<C...>>
+struct StringTypeName<StringType<C...>>
 {
     DECL_STATIC_CONSTEXPR auto value = StatiString::Create({C...});
 };
@@ -80,8 +80,6 @@ constexpr char GetChar(const char (&str)[N])
 #define EXPAND_STR_LEVEL2(str)      EXPAND_STR_LEVEL2_1(str), EXPAND_STR_LEVEL2_2(str), EXPAND_STR_LEVEL2_3(str), EXPAND_STR_LEVEL2_4(str)
 #define EXPAND_STR_256(str)         EXPAND_STR_LEVEL2(str)
 
-#define STRT(str)                   screw::reflection::detail::StringTCreate<EXPAND_STR_256(str)>::type
-}
-}
-} // namespace screw::reflection::detail
+#define STRT(str)                   screw::reflection::detail::StringTypeCreate<EXPAND_STR_256(str)>::type
+}}}    // namespace screw::reflection::detail
 #endif // !_STRING_TYPE_H_

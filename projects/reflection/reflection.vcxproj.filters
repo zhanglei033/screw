@@ -22,7 +22,7 @@
     <Filter Include="头文件\gtest">
       <UniqueIdentifier>{06cad896-345c-4f8c-8b4a-c16ae1317b3a}</UniqueIdentifier>
     </Filter>
-    <Filter Include="头文件\compile_time">
+    <Filter Include="头文件\static">
       <UniqueIdentifier>{bdb2f82f-b0d5-42bd-a807-b33e79e82280}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
@@ -108,9 +108,6 @@
     <ClInclude Include="..\..\src\reflection\RegistrationManager.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\reflection\TypeName.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\src\base\StaticString.h">
       <Filter>头文件\base</Filter>
     </ClInclude>
@@ -121,10 +118,25 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\reflection\static\TypeInfoDetail.h">
-      <Filter>头文件\compile_time</Filter>
+      <Filter>头文件\static</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\reflection\static\StringType.h">
-      <Filter>头文件\compile_time</Filter>
+      <Filter>头文件\static</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\reflection\static\TypeName.h">
+      <Filter>头文件\static</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\reflection\static\ElementCategory.h">
+      <Filter>头文件\static</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\reflection\static\ElementTraits.h">
+      <Filter>头文件\static</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\reflection\static\Element.h">
+      <Filter>头文件\static</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\reflection\static\ElementList.h">
+      <Filter>头文件\static</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -146,7 +158,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\src\reflection\static\TypeInfo.h">
-      <Filter>头文件\compile_time</Filter>
+      <Filter>头文件\static</Filter>
     </None>
   </ItemGroup>
 </Project>

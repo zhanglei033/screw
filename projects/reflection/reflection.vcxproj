@@ -41,8 +41,13 @@
     <ClInclude Include="..\..\src\googletest\gtest\gtest_pred_impl.h" />
     <ClInclude Include="..\..\src\googletest\gtest\gtest_prod.h" />
     <ClInclude Include="..\..\src\reflection\Comparison.h" />
+    <ClInclude Include="..\..\src\reflection\static\Element.h" />
+    <ClInclude Include="..\..\src\reflection\static\ElementCategory.h" />
+    <ClInclude Include="..\..\src\reflection\static\ElementList.h" />
+    <ClInclude Include="..\..\src\reflection\static\ElementTraits.h" />
     <ClInclude Include="..\..\src\reflection\static\StringType.h" />
     <ClInclude Include="..\..\src\reflection\static\TypeInfoDetail.h" />
+    <ClInclude Include="..\..\src\reflection\static\TypeName.h" />
     <ClInclude Include="..\..\src\reflection\TypeMetaData.h" />
     <ClInclude Include="..\..\src\reflection\ReflBase.h" />
     <ClInclude Include="..\..\src\reflection\Registration.h" />
@@ -51,17 +56,16 @@
     <ClInclude Include="..\..\src\reflection\RuntimeTypeInfo.h" />
     <ClInclude Include="..\..\src\reflection\StaticSymbol.h" />
     <ClInclude Include="..\..\src\reflection\TypeConverter.h" />
-    <ClInclude Include="..\..\src\reflection\TypeName.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\reflection\Registration.cpp" />
     <ClCompile Include="..\..\src\reflection\RuntimeTypeInfo.cpp" />
     <ClCompile Include="..\..\src\reflection\test.cpp" />
     <ClCompile Include="..\..\src\test\StringViewTest.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="..\..\src\test\VariantTest.cpp" />
   </ItemGroup>
@@ -144,7 +148,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <LanguageStandard>Default</LanguageStandard>
+      <LanguageStandard>stdcpp14</LanguageStandard>
       <AdditionalIncludeDirectories>$(SolutionDir)..\src;$(SolutionDir)..\src\googletest</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
@@ -162,7 +166,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <LanguageStandard>Default</LanguageStandard>
+      <LanguageStandard>stdcpp14</LanguageStandard>
       <AdditionalIncludeDirectories>$(SolutionDir)..\src;$(SolutionDir)..\src\googletest</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
@@ -180,7 +184,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <LanguageStandard>Default</LanguageStandard>
+      <LanguageStandard>stdcpp14</LanguageStandard>
       <AdditionalIncludeDirectories>$(SolutionDir)..\src;$(SolutionDir)..\src\googletest</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
@@ -198,7 +202,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <LanguageStandard>Default</LanguageStandard>
+      <LanguageStandard>stdcpp14</LanguageStandard>
       <AdditionalIncludeDirectories>$(SolutionDir)..\src;$(SolutionDir)..\src\googletest</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>

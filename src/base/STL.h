@@ -193,7 +193,7 @@ DECL_INLINE_VAR DECL_CONSTEXPR11 bool is_swappable_v = is_swappable<T>::value;
 
 template <class T1, class T2>
 struct swap_cannot_throw : bool_constant<noexcept(swap(std::declval<T1>(), std::declval<T2>())) //
-                                         && noexcept(swap(std::declval<T2>(), std::declval<T1>()))>
+                                             && noexcept(swap(std::declval<T2>(), std::declval<T1>()))>
 {
 };
 
@@ -854,7 +854,7 @@ struct disjunction_impl<false, False, Next, Rest...>
 template <class... Traits>
 struct disjunction : false_type
 {
-}; 
+};
 
 template <class First, class... Rest>
 struct disjunction<First, Rest...> : disjunction_impl<First::value, First, Rest...>::type

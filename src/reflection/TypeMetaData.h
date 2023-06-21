@@ -3,7 +3,7 @@
 #define _TYPE_META_DATA_H_
 #include "base/StringView.h"
 
-#include "TypeName.h"
+#include "reflection/static/TypeName.h"
 #include <string>
 namespace screw {
 namespace reflection {

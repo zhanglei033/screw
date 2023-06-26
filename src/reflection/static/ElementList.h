@@ -30,9 +30,9 @@ struct ElementList
     }
 
     template <class NameType>
-    DECL_STATIC_CONSTEXPR auto Find(NameType name)
+    DECL_STATIC_CONSTEXPR auto Get(NameType name)
     {
-        return Find<0, element_size, NameType>();
+        return Get<0, element_size, NameType>();
     }
 
 private:
@@ -130,7 +130,7 @@ private:
     }
 
     template <size_t CurIdx, size_t MaxIdx, class NameType>
-    DECL_STATIC_CONSTEXPR auto Find()
+    DECL_STATIC_CONSTEXPR auto Get()
     {
         if constexpr (CurIdx < MaxIdx)
         {
@@ -144,7 +144,7 @@ private:
             }
             else
             {
-                constexpr auto elem1 = Find<CurIdx + 1, MaxIdx, NameType>();
+                constexpr auto elem1 = Get<CurIdx + 1, MaxIdx, NameType>();
                 if constexpr (!is_empty_element(elem1))
                 {
                     return elem1;
@@ -155,7 +155,7 @@ private:
                     {
                         using type_info       = typename traits_type::type_info;
                         using bases_type_info = typename type_info::bases_type_info;
-                        return FindBases<bases_type_info, 0, std::meta_list_size_v<bases_type_info>, NameType>();
+                        return GetBases<bases_type_info, 0, std::meta_list_size_v<bases_type_info>, NameType>();
                     }
                     else
                     {
@@ -171,19 +171,19 @@ private:
     }
 
     template <class BasesTypeInfo, size_t CurIdx, size_t MaxIdx, class NameType>
-    DECL_STATIC_CONSTEXPR auto FindBases() DECL_NOEXCEPT
+    DECL_STATIC_CONSTEXPR auto GetBases() DECL_NOEXCEPT
     {
         if constexpr (CurIdx < MaxIdx)
         {
             using base_type_info = std::meta_list_at_t<BasesTypeInfo, CurIdx>;
-            constexpr auto elem  = base_type_info::FindElement(NameType{});
+            constexpr auto elem  = base_type_info::GetElement(NameType{});
             if constexpr (!is_empty_element(elem))
             {
                 return elem;
             }
             else
             {
-                return FindBases<BasesTypeInfo, CurIdx + 1, MaxIdx, NameType>();
+                return GetBases<BasesTypeInfo, CurIdx + 1, MaxIdx, NameType>();
             }
         }
         else

@@ -28,13 +28,16 @@ const int Vec::v4 = 7;
 template <>
 struct TypeInfo<Vec> : TypeInfoBase<Vec>
 {
-    DECL_STATIC_CONSTEXPR auto propertys = MakePropertys();
-    DECL_STATIC_CONSTEXPR auto members   = MakeMembers(
-        MakeMember<STRT("v1"), decltype(&Vec::v1), &Vec::v1>(),                     // v1
-        MakeMember<STRT("v2"), decltype(&Vec::v2), &Vec::v2>(),                     // v2
-        MakeMember<STRT("v3"), decltype(&Vec::v3), &Vec::v3>(),                     // v3
-        MakeMember<STRT("v4"), decltype(&Vec::v4), &Vec::v4>(),                     // v4
-        MakeMember<STRT("v5"), decltype(&Vec::v5), &Vec::v5>(),                     // v5
+    DECL_STATIC_CONSTEXPR auto propertys = MakePropertys(
+        MakeProperty<STRT("Serizable"), bool, true>());
+    DECL_STATIC_CONSTEXPR auto members = MakeMembers(
+        MakeMember<STRT("v1"), decltype(&Vec::v1), &Vec::v1>(), // v1
+        MakeMember<STRT("v2"), decltype(&Vec::v2), &Vec::v2>(), // v2
+        MakeMember<STRT("v3"), decltype(&Vec::v3), &Vec::v3>(), // v3
+        MakeMember<STRT("v4"), decltype(&Vec::v4), &Vec::v4>(
+            MakeProperty<STRT("Serizable"), bool, false>()), // v4
+        MakeMember<STRT("v5"), decltype(&Vec::v5), &Vec::v5>(
+            MakeProperty<STRT("Serizable"), bool, false>()),                        // v5
         MakeMember<STRT("TestFunc1"), decltype(&Vec::TestFunc1), &Vec::TestFunc1>() // TestFunc1
     );
 };
@@ -124,9 +127,19 @@ int main()
     TypeInfo<Vec>::ForEachElement(Func{});
     TypeInfo<Vec>::ForEachMemberVar(v, Func{});
 
-    constexpr auto elem_v1        = TypeInfo<Vec>::FindElement(STRT("v1"){});
-    elem_v1.Invoke(v)             = 10;
-    constexpr auto elem_TestFunc1 = TypeInfo<Vec>::FindElement(STRT("TestFunc1"){});
+    constexpr auto elem_v1 = TypeInfo<Vec>::GetMember(STRT("v1"){});
+    auto v1                = elem_v1.Invoke(v);
+    constexpr auto elem_v1_pro = elem_v1.GetProperty(STRT("Serizable"){}).Invoke();
+
+    auto vv1 = Get<STRT("v1")>(v);
+    constexpr auto vv5 = Get<STRT("v5")>(v);
+
+    elem_v1.Invoke(v)          = 10;
+    constexpr auto elem_v5     = TypeInfo<Vec>::GetMember(STRT("v5"){});
+    constexpr auto v5          = elem_v5.Invoke();
+    constexpr auto elem_v5_pro = elem_v5.GetProperty(STRT("Serizable"){}).Invoke();
+
+    constexpr auto elem_TestFunc1 = TypeInfo<Vec>::GetMember(STRT("TestFunc1"){});
     elem_TestFunc1.Invoke(v, 10, 20);
     ClassD d;
     TypeInfo<ClassD>::ForEachElement(Func{});

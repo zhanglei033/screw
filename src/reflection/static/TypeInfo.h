@@ -112,24 +112,24 @@ struct TypeInfoBase
     }
 
     template <class NameType>
-    DECL_STATIC_CONSTEXPR auto FindElement(NameType name)
+    DECL_STATIC_CONSTEXPR auto GetElement(NameType name)
     {
-        auto elem1 = FindProperty(name);
+        auto elem1 = GetProperty(name);
         if constexpr (!is_empty_element(elem1))
         {
             return elem1;
         }
-        return FindMember(name);
+        return GetMember(name);
     }
     template <class NameType>
-    DECL_STATIC_CONSTEXPR auto FindProperty(NameType name)
+    DECL_STATIC_CONSTEXPR auto GetProperty(NameType name)
     {
-        return type_info::propertys.Find(name);
+        return type_info::propertys.Get(name);
     }
     template <class NameType>
-    DECL_STATIC_CONSTEXPR auto FindMember(NameType name)
+    DECL_STATIC_CONSTEXPR auto GetMember(NameType name)
     {
-        return type_info::members.Find(name);
+        return type_info::members.Get(name);
     }
 };
 
@@ -139,6 +139,54 @@ struct TypeInfo : TypeInfoBase<T>
     DECL_STATIC_CONSTEXPR auto propertys = TypeInfoBase<T>::MakePropertys();
     DECL_STATIC_CONSTEXPR auto members   = TypeInfoBase<T>::MakeMembers();
 };
+
+struct GetElementStrategyTag
+{
+};
+struct GetPropertyElementStrategyTag
+{
+};
+struct GetMemberElementStrategyTag
+{
+};
+struct GetMemberValueStrategyTag
+{
+};
+template <class NameType, class T, class Strategy = GetMemberValueStrategyTag>
+DECL_STATIC_CONSTEXPR auto Get(T&& obj)
+{
+    if constexpr (std::is_same_v<Strategy, GetElementStrategyTag>)
+    {
+        return TypeInfo<T>::GetElement(NameType);
+    }
+    else if constexpr (std::is_same_v<Strategy, GetPropertyElementStrategyTag>)
+    {
+        return TypeInfo<T>::GetProperty(NameType);
+    }
+    else if constexpr (std::is_same_v<Strategy, GetMemberElementStrategyTag>)
+    {
+        return TypeInfo<T>::GetMember(NameType);
+    }
+    else
+    {
+        constexpr auto memberElem = TypeInfo<std::remove_cvref_t<T>>::GetMember(NameType{});
+        static_assert(!is_empty_element(memberElem), "must be is an existing member");
+
+        using element_type = decltype(memberElem);
+        using element_core = typename element_type::element_core;
+        using type_info    = typename element_core::element_info;
+        static_assert(type_info::is_member_variable_v, "must be is an existing member variable");
+
+        if constexpr (type_info::is_member_variable_static_v)
+        {
+            return memberElem.Invoke();
+        }
+        else
+        {
+            return memberElem.Invoke(std::forward<T>(obj));
+        }
+    }
+}
 }
 } // namespace screw::reflection
 #endif // !_TYPE_INFO_H_

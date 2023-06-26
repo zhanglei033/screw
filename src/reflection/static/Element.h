@@ -8,6 +8,8 @@ namespace screw {
 namespace reflection {
 template <class Element>
 struct ElementInfo;
+template <class Element>
+DECL_STATIC_CONSTEXPR bool is_empty_element(Element);
 namespace detail {
 
 template <class ElementInfo,
@@ -39,12 +41,12 @@ struct ElementInvoke<ElementInfo, ValueType, Elem, true, false, true, false> // 
     using traits_type                       = typename ElementInfo::traits_type;
     using element_type                      = typename traits_type::element_type;
     DECL_STATIC_CONSTEXPR element_type elem = Elem;
-    template <class FirstArg, class... RestArgs>
-    DECL_STATIC_CONSTEXPR auto Invoke(FirstArg&& first, RestArgs&&... rest)
-        DECL_NOEXCEPT(DECL_NOEXCEPT((std::forward<FirstArg>(first).*elem)(std::forward<RestArgs>(rest)...)))
-            -> decltype((std::forward<FirstArg>(first).*elem)(std::forward<RestArgs>(rest)...))
+    template <class Object, class... Args>
+    DECL_STATIC_CONSTEXPR auto Invoke(Object&& obj, Args&&... args)
+        DECL_NOEXCEPT(DECL_NOEXCEPT((std::forward<Object>(obj).*elem)(std::forward<Args>(args)...)))
+            -> decltype((std::forward<Object>(obj).*elem)(std::forward<Args>(args)...))
     {
-        return (std::forward<FirstArg>(first).*elem)(std::forward<RestArgs>(rest)...);
+        return (std::forward<Object>(obj).*elem)(std::forward<Args>(args)...);
     }
 };
 
@@ -54,10 +56,10 @@ struct ElementInvoke<ElementInfo, ValueType, Elem, true, false, false, true> // 
     using traits_type                       = typename ElementInfo::traits_type;
     using element_type                      = typename traits_type::element_type;
     DECL_STATIC_CONSTEXPR element_type elem = Elem;
-    template <class FirstArg, class... RestArgs>
-    DECL_STATIC_CONSTEXPR auto Invoke(FirstArg&& first) DECL_NOEXCEPT -> decltype(std::forward<FirstArg>(first).*elem)
+    template <class Object>
+    DECL_STATIC_CONSTEXPR auto Invoke(Object&& obj) DECL_NOEXCEPT -> decltype(std::forward<Object>(obj).*elem)
     {
-        return std::forward<FirstArg>(first).*elem;
+        return std::forward<Object>(obj).*elem;
     }
 };
 
@@ -142,10 +144,19 @@ struct Member : ElementCore
     using traits_type    = typename ElementCore::traits_type;
     using propertys_type = ElementList<Propertys...>;
 
-    template <class NameType, size_t>
-    DECL_STATIC_CONSTEXPR auto FindProperty(NameType name)
+    template <class NameType>
+    DECL_STATIC_CONSTEXPR auto GetProperty(NameType name)
     {
-        return propertys_type::Find(name);
+        constexpr auto elem1 = propertys_type::Get(name);
+        if constexpr (!is_empty_element(elem1))
+        {
+            return elem1;
+        }
+        else
+        {
+            using type_info = typename element_core::type_info;
+            return type_info::GetProperty(name);
+        }
     }
 };
 

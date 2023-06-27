@@ -4,7 +4,8 @@
 #include "ElementList.h"
 #include "StringType.h"
 #include "TypeName.h"
-#include "reflection/ReflBase.h"
+#include "ReflBase.h"
+#include "Type.h"
 namespace screw {
 namespace reflection {
 

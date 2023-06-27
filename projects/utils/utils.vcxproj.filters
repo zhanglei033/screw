@@ -16,34 +16,73 @@
     <Filter Include="头文件\container">
       <UniqueIdentifier>{be8495de-6756-48a6-9ca0-9ad8aca9064f}</UniqueIdentifier>
     </Filter>
-    <Filter Include="头文件\container\data_structure">
-      <UniqueIdentifier>{99d8c6b8-f06b-4bfd-94bb-716f7d73b603}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="头文件\container\assembly">
-      <UniqueIdentifier>{d46bf758-8c60-4c07-ab4f-3008ed159f42}</UniqueIdentifier>
-    </Filter>
     <Filter Include="源文件\rttr">
       <UniqueIdentifier>{579dc7c1-9928-4e03-b257-b49206192e16}</UniqueIdentifier>
     </Filter>
+    <Filter Include="头文件\base">
+      <UniqueIdentifier>{667c5d51-5c31-4ce4-96ea-8698cac5d810}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\reflection">
+      <UniqueIdentifier>{d7b1e7c8-6333-4516-a8a3-fdcd18281992}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\data structure">
+      <UniqueIdentifier>{ac0e1455-4e21-487d-a969-f7584c5d394c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\src\utils\UtilsDef.h">
-      <Filter>头文件</Filter>
+    <ClInclude Include="..\..\src\base\Assert.h">
+      <Filter>头文件\base</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\utils\STL.h">
-      <Filter>头文件</Filter>
+    <ClInclude Include="..\..\src\base\Algorithms.h">
+      <Filter>头文件\base</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\utils\Assert.h">
-      <Filter>头文件</Filter>
+    <ClInclude Include="..\..\src\base\IteratorBase.h">
+      <Filter>头文件\base</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\utils\IteratorBase.h">
-      <Filter>头文件</Filter>
+    <ClInclude Include="..\..\src\base\Platform.h">
+      <Filter>头文件\base</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\utils\ArrayList.h">
-      <Filter>头文件\container</Filter>
+    <ClInclude Include="..\..\src\base\StaticString.h">
+      <Filter>头文件\base</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\utils\MetaData.h">
-      <Filter>头文件</Filter>
+    <ClInclude Include="..\..\src\base\STL.h">
+      <Filter>头文件\base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\base\StringView.h">
+      <Filter>头文件\base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\base\TypesDef.h">
+      <Filter>头文件\base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\base\Variant.h">
+      <Filter>头文件\base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\reflection\Element.h">
+      <Filter>头文件\reflection</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\reflection\ElementCategory.h">
+      <Filter>头文件\reflection</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\reflection\ElementList.h">
+      <Filter>头文件\reflection</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\reflection\ElementTraits.h">
+      <Filter>头文件\reflection</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\reflection\ReflBase.h">
+      <Filter>头文件\reflection</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\reflection\StringType.h">
+      <Filter>头文件\reflection</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\reflection\Type.h">
+      <Filter>头文件\reflection</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\reflection\TypeInfo.h">
+      <Filter>头文件\reflection</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\reflection\TypeName.h">
+      <Filter>头文件\reflection</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

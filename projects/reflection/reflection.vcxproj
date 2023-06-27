@@ -40,37 +40,23 @@
     <ClInclude Include="..\..\src\googletest\gtest\gtest.h" />
     <ClInclude Include="..\..\src\googletest\gtest\gtest_pred_impl.h" />
     <ClInclude Include="..\..\src\googletest\gtest\gtest_prod.h" />
-    <ClInclude Include="..\..\src\reflection\Comparison.h" />
-    <ClInclude Include="..\..\src\reflection\static\Element.h" />
-    <ClInclude Include="..\..\src\reflection\static\ElementCategory.h" />
-    <ClInclude Include="..\..\src\reflection\static\ElementList.h" />
-    <ClInclude Include="..\..\src\reflection\static\ElementTraits.h" />
-    <ClInclude Include="..\..\src\reflection\static\StringType.h" />
-    <ClInclude Include="..\..\src\reflection\static\TypeInfoDetail.h" />
-    <ClInclude Include="..\..\src\reflection\static\TypeName.h" />
-    <ClInclude Include="..\..\src\reflection\TypeMetaData.h" />
+    <ClInclude Include="..\..\src\reflection\Element.h" />
+    <ClInclude Include="..\..\src\reflection\ElementCategory.h" />
+    <ClInclude Include="..\..\src\reflection\ElementList.h" />
+    <ClInclude Include="..\..\src\reflection\ElementTraits.h" />
     <ClInclude Include="..\..\src\reflection\ReflBase.h" />
-    <ClInclude Include="..\..\src\reflection\Registration.h" />
-    <ClInclude Include="..\..\src\reflection\RegistrationManager.h" />
-    <ClInclude Include="..\..\src\reflection\RuntimeTypeData.h" />
-    <ClInclude Include="..\..\src\reflection\RuntimeTypeInfo.h" />
-    <ClInclude Include="..\..\src\reflection\StaticSymbol.h" />
-    <ClInclude Include="..\..\src\reflection\TypeConverter.h" />
+    <ClInclude Include="..\..\src\reflection\StringType.h" />
+    <ClInclude Include="..\..\src\reflection\Type.h" />
+    <ClInclude Include="..\..\src\reflection\TypeInfo.h" />
+    <ClInclude Include="..\..\src\reflection\TypeName.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\src\reflection\Registration.cpp" />
-    <ClCompile Include="..\..\src\reflection\RuntimeTypeInfo.cpp" />
-    <ClCompile Include="..\..\src\reflection\test.cpp" />
-    <ClCompile Include="..\..\src\test\StringViewTest.cpp">
+    <ClCompile Include="..\..\src\reflection\test.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="..\..\src\test\VariantTest.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="..\..\src\reflection\static\TypeInfo.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
@@ -81,26 +67,26 @@
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v143</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v143</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>

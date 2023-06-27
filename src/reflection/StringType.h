@@ -1,7 +1,7 @@
 #pragma once
 #ifndef _STRING_TYPE_H_
 #define _STRING_TYPE_H_
-#include "reflection/ReflBase.h"
+#include "ReflBase.h"
 
 namespace screw {
 namespace reflection {

@@ -3,8 +3,8 @@
 #include "base/StringView.h"
 #include "base/Variant.h"
 #include "googletest/gtest/gtest.h"
-#include "reflection/static//Element.h"
-#include "reflection/static/TypeInfo.h"
+#include "reflection/Element.h"
+#include "reflection/TypeInfo.h"
 #include <cassert>
 #include <type_traits>
 
@@ -18,6 +18,10 @@ struct Vec
     static const int v4;
     static constexpr int v5 = 8;
 
+    Vec() = default;
+    Vec(int a, int b)
+        : v1(a), v2(b) {}
+
     void TestFunc1(int a1, int a2)
     {
     }
@@ -25,6 +29,10 @@ struct Vec
 int Vec::v3       = 6;
 const int Vec::v4 = 7;
 
+template <>
+struct Type<STRT("Vec")> : Type<Vec>
+{
+};
 template <>
 struct TypeInfo<Vec> : TypeInfoBase<Vec>
 {
@@ -120,6 +128,8 @@ struct Func
 
 int main()
 {
+    auto vv = GetByName<STRT("Vec")>(10, 20);
+
     Vec v;
     auto func = &Vec::TestFunc1;
     v.v1      = 10;
@@ -127,11 +137,11 @@ int main()
     TypeInfo<Vec>::ForEachElement(Func{});
     TypeInfo<Vec>::ForEachMemberVar(v, Func{});
 
-    constexpr auto elem_v1 = TypeInfo<Vec>::GetMember(STRT("v1"){});
-    auto v1                = elem_v1.Invoke(v);
+    constexpr auto elem_v1     = TypeInfo<Vec>::GetMember(STRT("v1"){});
+    auto v1                    = elem_v1.Invoke(v);
     constexpr auto elem_v1_pro = elem_v1.GetProperty(STRT("Serizable"){}).Invoke();
 
-    auto vv1 = Get<STRT("v1")>(v);
+    auto vv1           = Get<STRT("v1")>(v);
     constexpr auto vv5 = Get<STRT("v5")>(v);
 
     elem_v1.Invoke(v)          = 10;

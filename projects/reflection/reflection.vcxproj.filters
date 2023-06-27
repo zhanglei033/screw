@@ -16,13 +16,10 @@
     <Filter Include="头文件\base">
       <UniqueIdentifier>{426763e9-9677-4f18-92a9-9fac4ffd9338}</UniqueIdentifier>
     </Filter>
-    <Filter Include="源文件\test">
-      <UniqueIdentifier>{ba69a7d5-249e-4d14-a9f9-1edc9595ed68}</UniqueIdentifier>
-    </Filter>
     <Filter Include="头文件\gtest">
       <UniqueIdentifier>{06cad896-345c-4f8c-8b4a-c16ae1317b3a}</UniqueIdentifier>
     </Filter>
-    <Filter Include="头文件\static">
+    <Filter Include="头文件\refl">
       <UniqueIdentifier>{bdb2f82f-b0d5-42bd-a807-b33e79e82280}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
@@ -39,20 +36,11 @@
     <ClInclude Include="..\..\src\base\TypesDef.h">
       <Filter>头文件\base</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\reflection\Comparison.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\src\base\StringView.h">
       <Filter>头文件\base</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\base\CommonAlgorithms.h">
       <Filter>头文件\base</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\reflection\RuntimeTypeInfo.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\reflection\RuntimeTypeData.h">
-      <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\base\Variant.h">
       <Filter>头文件\base</Filter>
@@ -96,69 +84,40 @@
     <ClInclude Include="..\..\src\googletest\gtest\gtest-typed-test.h">
       <Filter>头文件\gtest</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\reflection\Registration.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\reflection\StaticSymbol.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\reflection\TypeMetaData.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\reflection\RegistrationManager.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\src\base\StaticString.h">
       <Filter>头文件\base</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\src\reflection\Element.h">
+      <Filter>头文件\refl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\reflection\ElementCategory.h">
+      <Filter>头文件\refl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\reflection\ElementList.h">
+      <Filter>头文件\refl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\reflection\ElementTraits.h">
+      <Filter>头文件\refl</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\src\reflection\ReflBase.h">
-      <Filter>头文件</Filter>
+      <Filter>头文件\refl</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\reflection\TypeConverter.h">
-      <Filter>头文件</Filter>
+    <ClInclude Include="..\..\src\reflection\StringType.h">
+      <Filter>头文件\refl</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\reflection\static\TypeInfoDetail.h">
-      <Filter>头文件\static</Filter>
+    <ClInclude Include="..\..\src\reflection\TypeInfo.h">
+      <Filter>头文件\refl</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\reflection\static\StringType.h">
-      <Filter>头文件\static</Filter>
+    <ClInclude Include="..\..\src\reflection\TypeName.h">
+      <Filter>头文件\refl</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\reflection\static\TypeName.h">
-      <Filter>头文件\static</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\reflection\static\ElementCategory.h">
-      <Filter>头文件\static</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\reflection\static\ElementTraits.h">
-      <Filter>头文件\static</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\reflection\static\Element.h">
-      <Filter>头文件\static</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\reflection\static\ElementList.h">
-      <Filter>头文件\static</Filter>
+    <ClInclude Include="..\..\src\reflection\Type.h">
+      <Filter>头文件\refl</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\reflection\test.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\reflection\RuntimeTypeInfo.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\test\VariantTest.cpp">
-      <Filter>源文件\test</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\test\StringViewTest.cpp">
-      <Filter>源文件\test</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\reflection\Registration.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="..\..\src\reflection\static\TypeInfo.h">
-      <Filter>头文件\static</Filter>
-    </None>
   </ItemGroup>
 </Project>

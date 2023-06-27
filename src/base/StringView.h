@@ -5,7 +5,7 @@
 #if STD_HAS_CXX17
 #include <string>
 #else
-#include "CommonAlgorithms.h"
+#include "Algorithms.h"
 #include "IteratorBase.h"
 #include "TypesDef.h"
 #include <string>
@@ -332,122 +332,122 @@ public:
 
     DECL_NODISCARD DECL_CONSTEXPR11 size_type find(const basic_string_view other, const size_type offset = 0) const DECL_NOEXCEPT
     {
-        return screw::find(m_data, m_size, offset, other.m_data, other.m_size);
+        return screw::algo::find(m_data, m_size, offset, other.m_data, other.m_size);
     }
 
     DECL_NODISCARD DECL_CONSTEXPR11 size_type find(const Elem ch, const size_type offset = 0) const DECL_NOEXCEPT
     {
-        return screw::find(m_data, m_size, offset, &ch, 1);
+        return screw::algo::find(m_data, m_size, offset, &ch, 1);
     }
 
     DECL_NODISCARD DECL_CONSTEXPR11 size_type find(const_pointer ptr, const size_type offset, const size_type count) const DECL_NOEXCEPT
     {
-        return screw::find(m_data, m_size, offset, ptr, count);
+        return screw::algo::find(m_data, m_size, offset, ptr, count);
     }
 
     DECL_NODISCARD DECL_CONSTEXPR11 size_type find(const_pointer ptr, const size_type offset = 0) const DECL_NOEXCEPT
     {
-        return screw::find(m_data, m_size, offset, ptr, Traits::length(ptr));
+        return screw::algo::find(m_data, m_size, offset, ptr, Traits::length(ptr));
     }
 
     DECL_NODISCARD DECL_CONSTEXPR11 size_type rfind(const basic_string_view other, const size_type offset = npos) const DECL_NOEXCEPT
     {
-        return screw::rfind(m_data, m_size, offset, other.m_data, other.m_size);
+        return screw::algo::rfind(m_data, m_size, offset, other.m_data, other.m_size);
     }
 
     DECL_NODISCARD DECL_CONSTEXPR11 size_type rfind(const Elem ch, const size_type offset = npos) const DECL_NOEXCEPT
     {
-        return screw::rfind(m_data, m_size, offset, &ch, 1);
+        return screw::algo::rfind(m_data, m_size, offset, &ch, 1);
     }
 
     DECL_NODISCARD DECL_CONSTEXPR11 size_type rfind(const_pointer ptr, const size_type offset, const size_type count) const DECL_NOEXCEPT
     {
-        return screw::rfind(m_data, m_size, offset, ptr, count);
+        return screw::algo::rfind(m_data, m_size, offset, ptr, count);
     }
 
     DECL_NODISCARD DECL_CONSTEXPR11 size_type rfind(const_pointer ptr, const size_type offset = npos) const DECL_NOEXCEPT
     {
-        return screw::rfind(m_data, m_size, offset, ptr, Traits::length(ptr));
+        return screw::algo::rfind(m_data, m_size, offset, ptr, Traits::length(ptr));
     }
 
     DECL_NODISCARD DECL_CONSTEXPR11 size_type find_first_of(const basic_string_view other, const size_type offset = 0) const DECL_NOEXCEPT
     {
-        return screw::find_first_of(m_data, m_size, offset, other.m_data, other.m_size);
+        return screw::algo::find_first_of(m_data, m_size, offset, other.m_data, other.m_size);
     }
 
     DECL_NODISCARD DECL_CONSTEXPR11 size_type find_first_of(const Elem ch, const size_type offset = 0) const DECL_NOEXCEPT
     {
-        return screw::find_first_of(m_data, m_size, offset, &ch, 1);
+        return screw::algo::find_first_of(m_data, m_size, offset, &ch, 1);
     }
 
     DECL_NODISCARD DECL_CONSTEXPR11 size_type find_first_of(const_pointer ptr, const size_type offset, const size_type count) const DECL_NOEXCEPT
     {
-        return screw::find_first_of(m_data, m_size, offset, ptr, count);
+        return screw::algo::find_first_of(m_data, m_size, offset, ptr, count);
     }
 
     DECL_NODISCARD DECL_CONSTEXPR11 size_type find_first_of(const_pointer ptr, const size_type offset = 0) const DECL_NOEXCEPT
     {
-        return screw::find_first_of(m_data, m_size, offset, ptr, Traits::length(ptr));
+        return screw::algo::find_first_of(m_data, m_size, offset, ptr, Traits::length(ptr));
     }
 
     DECL_NODISCARD DECL_CONSTEXPR11 size_type find_last_of(const basic_string_view other, const size_type offset = npos) const DECL_NOEXCEPT
     {
-        return screw::find_last_of(m_data, m_size, offset, other.m_data, other.m_size);
+        return screw::algo::find_last_of(m_data, m_size, offset, other.m_data, other.m_size);
     }
 
     DECL_NODISCARD DECL_CONSTEXPR11 size_type find_last_of(const Elem ch, const size_type offset = npos) const DECL_NOEXCEPT
     {
-        return screw::find_last_of(m_data, m_size, offset, &ch, 1);
+        return screw::algo::find_last_of(m_data, m_size, offset, &ch, 1);
     }
 
     DECL_NODISCARD DECL_CONSTEXPR11 size_type find_last_of(const_pointer ptr, const size_type offset, const size_type count) const DECL_NOEXCEPT
     {
-        return screw::find_last_of(m_data, m_size, offset, ptr, count);
+        return screw::algo::find_last_of(m_data, m_size, offset, ptr, count);
     }
 
     DECL_NODISCARD DECL_CONSTEXPR11 size_type find_last_of(const_pointer ptr, const size_type offset = npos) const DECL_NOEXCEPT
     {
-        return screw::find_last_of(m_data, m_size, offset, ptr, Traits::length(ptr));
+        return screw::algo::find_last_of(m_data, m_size, offset, ptr, Traits::length(ptr));
     }
 
     DECL_NODISCARD DECL_CONSTEXPR11 size_type find_first_not_of(const basic_string_view other, const size_type offset = 0) const DECL_NOEXCEPT
     {
-        return screw::find_first_not_of(m_data, m_size, offset, other.m_data, other.m_size);
+        return screw::algo::find_first_not_of(m_data, m_size, offset, other.m_data, other.m_size);
     }
 
     DECL_NODISCARD DECL_CONSTEXPR11 size_type find_first_not_of(const Elem ch, const size_type offset = 0) const DECL_NOEXCEPT
     {
-        return screw::find_first_not_of(m_data, m_size, offset, &ch, 1);
+        return screw::algo::find_first_not_of(m_data, m_size, offset, &ch, 1);
     }
 
     DECL_NODISCARD DECL_CONSTEXPR11 size_type find_first_not_of(const_pointer ptr, const size_type offset, const size_type count) const DECL_NOEXCEPT
     {
-        return screw::find_first_not_of(m_data, m_size, offset, ptr, count);
+        return screw::algo::find_first_not_of(m_data, m_size, offset, ptr, count);
     }
 
     DECL_NODISCARD DECL_CONSTEXPR11 size_type find_first_not_of(const_pointer ptr, const size_type offset = 0) const DECL_NOEXCEPT
     {
-        return screw::find_first_not_of(m_data, m_size, offset, ptr, Traits::length(ptr));
+        return screw::algo::find_first_not_of(m_data, m_size, offset, ptr, Traits::length(ptr));
     }
 
     DECL_NODISCARD DECL_CONSTEXPR11 size_type find_last_not_of(const basic_string_view other, const size_type offset = npos) const DECL_NOEXCEPT
     {
-        return screw::find_last_not_of(m_data, m_size, offset, other.m_data, other.m_size);
+        return screw::algo::find_last_not_of(m_data, m_size, offset, other.m_data, other.m_size);
     }
 
     DECL_NODISCARD DECL_CONSTEXPR11 size_type find_last_not_of(const Elem ch, const size_type offset = npos) const DECL_NOEXCEPT
     {
-        return screw::find_last_not_of(m_data, m_size, offset, &ch, 1);
+        return screw::algo::find_last_not_of(m_data, m_size, offset, &ch, 1);
     }
 
     DECL_NODISCARD DECL_CONSTEXPR11 size_type find_last_not_of(const_pointer ptr, const size_type offset, const size_type count) const DECL_NOEXCEPT
     {
-        return screw::find_last_not_of(m_data, m_size, offset, ptr, count);
+        return screw::algo::find_last_not_of(m_data, m_size, offset, ptr, count);
     }
 
     DECL_NODISCARD DECL_CONSTEXPR11 size_type find_last_not_of(const_pointer ptr, const size_type offset = npos) const DECL_NOEXCEPT
     {
-        return screw::find_last_not_of(m_data, m_size, offset, ptr, Traits::length(ptr));
+        return screw::algo::find_last_not_of(m_data, m_size, offset, ptr, Traits::length(ptr));
     }
 
     template <typename Allocator = std::allocator<Elem>>

@@ -28,6 +28,12 @@
     <Filter Include="头文件\data structure">
       <UniqueIdentifier>{ac0e1455-4e21-487d-a969-f7584c5d394c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="头文件\algorithms">
+      <UniqueIdentifier>{5d25c877-e47d-4ca7-ae55-7b6527d3d56e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\algorithms">
+      <UniqueIdentifier>{0bbfc185-3295-4a3d-9a1e-7737d5674754}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\base\Assert.h">
@@ -83,6 +89,27 @@
     </ClInclude>
     <ClInclude Include="..\..\src\reflection\TypeName.h">
       <Filter>头文件\reflection</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\utils\algorithms\AES.h">
+      <Filter>头文件\algorithms</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\utils\algorithms\SHA.h">
+      <Filter>头文件\algorithms</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\utils\algorithms\Base64.h">
+      <Filter>头文件\algorithms</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\utils\algorithms\CRC32.h">
+      <Filter>头文件\algorithms</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\utils\algorithms\MD5.h">
+      <Filter>头文件\algorithms</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\utils\algorithms\Minimal.h">
+      <Filter>头文件\algorithms</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\utils\algorithms\XXTEA.h">
+      <Filter>头文件\algorithms</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

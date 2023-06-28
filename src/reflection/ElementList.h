@@ -125,7 +125,7 @@ private:
             using base_type_info = std::meta_list_at_t<BasesTypeInfo, CurIdx>;
             using base_type      = typename base_type_info::type;
             base_type_info::ForEachMemberVar(std::forward<base_type>(obj), std::forward<Callable>(caller));
-            ForEachBases<BasesTypeInfo, CurIdx + 1, MaxIdx>(std::forward<Callable>(caller));
+            ForEachBases<BasesTypeInfo, CurIdx + 1, MaxIdx>(std::forward<Type>(obj), std::forward<Callable>(caller));
         }
     }
 

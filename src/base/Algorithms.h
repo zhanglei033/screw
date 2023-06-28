@@ -2,7 +2,6 @@
 #ifndef _ALGOROTHMS_H_
 #define _ALGOROTHMS_H_
 #include "Platform.h"
-#include "TypesDef.h"
 #include <memory>
 
 namespace screw {
@@ -536,13 +535,5 @@ constexpr static void reverse(T* curData, size_t curSize) noexcept
     while (left < right)
         std::swap(curData[left++], curData[right--]);
 }
-
-namespace AES {
-template <screw::uint8 x>
-constexpr static auto XTIME()
-{
-    return (((x) << 1) ^ ((((x) >> 7) & 1) * 0x1b));
-}
-} // namespace AES
 }}     // namespace screw::algo
 #endif // !_ALGOROTHMS_H_

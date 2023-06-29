@@ -111,6 +111,12 @@
     <ClInclude Include="..\..\src\utils\algorithms\XXTEA.h">
       <Filter>头文件\algorithms</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\src\utils\data structure\RBTree.h">
+      <Filter>头文件\data structure</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\utils\container\ContainerBase.h">
+      <Filter>头文件\container</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\utils\test.cpp">
@@ -211,6 +217,27 @@
     </ClCompile>
     <ClCompile Include="..\..\src\rttr\detail\variant\variant_compare.cpp">
       <Filter>源文件\rttr</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\utils\algorithms\AES.cpp">
+      <Filter>源文件\algorithms</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\utils\algorithms\Base64.cpp">
+      <Filter>源文件\algorithms</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\utils\algorithms\CRC32.cpp">
+      <Filter>源文件\algorithms</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\utils\algorithms\MD5.cpp">
+      <Filter>源文件\algorithms</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\utils\algorithms\Minimal.cpp">
+      <Filter>源文件\algorithms</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\utils\algorithms\XXTEA.cpp">
+      <Filter>源文件\algorithms</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\utils\algorithms\SHA.cpp">
+      <Filter>源文件\algorithms</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

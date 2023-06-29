@@ -149,13 +149,18 @@ private:
 
 // 通用的随机访问读写迭代器模板
 template <class T, bool IsConst>
-class RandomIterator : public IteratorBase<std::conditional_t<IsConst, ConstIteratorTraits<RandomIterator<T, IsConst>, T, std::random_access_iterator_tag>, IteratorTraits<RandomIterator<T, IsConst>, T, std::random_access_iterator_tag>>>
+class RandomIterator : public IteratorBase<std::conditional_t<IsConst,
+                                                              ConstIteratorTraits<RandomIterator<T, IsConst>,
+                                                                                  T,
+                                                                                  std::random_access_iterator_tag>,
+                                                              IteratorTraits<RandomIterator<T, IsConst>,
+                                                                             T,
+                                                                             std::random_access_iterator_tag>>>
 {
 public:
     using base_type         = IteratorBase<std::conditional_t<IsConst,
                                                       ConstIteratorTraits<RandomIterator<T, IsConst>, T, std::random_access_iterator_tag>,
                                                       IteratorTraits<RandomIterator<T, IsConst>, T, std::random_access_iterator_tag>>>;
-    using derived_type      = typename base_type::derived_type;
     using value_type        = typename base_type::value_type;
     using size_type         = typename base_type::size_type;
     using reference         = typename base_type::reference;

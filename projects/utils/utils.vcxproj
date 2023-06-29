@@ -184,6 +184,8 @@
     <ClInclude Include="..\..\src\utils\algorithms\Minimal.h" />
     <ClInclude Include="..\..\src\utils\algorithms\SHA.h" />
     <ClInclude Include="..\..\src\utils\algorithms\XXTEA.h" />
+    <ClInclude Include="..\..\src\utils\container\ContainerBase.h" />
+    <ClInclude Include="..\..\src\utils\data structure\RBTree.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\rttr\constructor.cpp">
@@ -378,6 +380,13 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="..\..\src\utils\algorithms\AES.cpp" />
+    <ClCompile Include="..\..\src\utils\algorithms\Base64.cpp" />
+    <ClCompile Include="..\..\src\utils\algorithms\CRC32.cpp" />
+    <ClCompile Include="..\..\src\utils\algorithms\MD5.cpp" />
+    <ClCompile Include="..\..\src\utils\algorithms\Minimal.cpp" />
+    <ClCompile Include="..\..\src\utils\algorithms\SHA.cpp" />
+    <ClCompile Include="..\..\src\utils\algorithms\XXTEA.cpp" />
     <ClCompile Include="..\..\src\utils\test.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

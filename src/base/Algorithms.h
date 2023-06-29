@@ -2,8 +2,8 @@
 #ifndef _ALGOROTHMS_H_
 #define _ALGOROTHMS_H_
 #include "Platform.h"
+#include "STL.h"
 #include <memory>
-
 namespace screw {
 namespace algo {
 // 因为insert算法只进行插入操作，不进行任何的内存分配行为
@@ -29,9 +29,9 @@ DECL_STATIC_CONSTEXPR void insert(T* curData,             // 当前操作的数据
 }
 
 template <class Iter, class Traits = std::char_traits<typename std::iterator_traits<Iter>::value_type>>
-DECL_STATIC_CONSTEXPR void insert(Iter first,       // 第一个
-                                  Iter insertPos,   // 插入位置
+DECL_STATIC_CONSTEXPR void insert(Iter first, // 第一个
                                   Iter last,        // 最后一个
+                                  Iter insertPos,   // 插入位置
                                   Iter insertFirst, // 插入的第一个
                                   Iter insertLast   // 插入的最后一个
                                   ) DECL_NOEXCEPT
@@ -75,7 +75,7 @@ DECL_STATIC_CONSTEXPR void erase(T* curData,            // 当前操作的数据
     else // 未清除的区间前移，然后将剩下的清除
     {
         auto eraseDataPos = curData + erasePos;
-        Traits::move(eraseDataPos, eraseDataPos + eraseSize, (curSize - removePos - size));
+        Traits::move(eraseDataPos, eraseDataPos + eraseSize, (curSize - erasePos - eraseSize));
         Traits::assign(curData + curSize - eraseSize, eraseSize, Traits::to_char_type(0));
     }
 }

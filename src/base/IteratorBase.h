@@ -2,6 +2,7 @@
 #ifndef _ITERATOR_BASE_H_
 #define _ITERATOR_BASE_H_
 #include "Assert.h"
+#include "Platform.h"
 #include "STL.h"
 #include "TypesDef.h"
 namespace screw {
@@ -57,18 +58,18 @@ public:
     using iterator_category = typename Traits::iterator_category;
 
 public:
-    DECL_NODISCARD constexpr reference operator*() const noexcept { return AsDerived().Dereference(); }
+    DECL_NODISCARD constexpr reference operator*() const DECL_NOEXCEPT { return AsDerived().Dereference(); }
 
-    DECL_NODISCARD constexpr pointer operator->() const noexcept { return std::addressof(operator*()); }
+    DECL_NODISCARD constexpr pointer operator->() const DECL_NOEXCEPT { return std::addressof(operator*()); }
 
-    constexpr derived_type& operator++() noexcept
+    constexpr derived_type& operator++() DECL_NOEXCEPT
     {
         auto& derived = AsDerived();
         derived.Increment(1);
         return derived;
     }
 
-    constexpr derived_type operator++(int) noexcept
+    constexpr derived_type operator++(int) DECL_NOEXCEPT
     {
         auto& derived = AsDerived();
         auto temp     = derived;
@@ -76,14 +77,14 @@ public:
         return temp;
     }
 
-    constexpr derived_type& operator--() noexcept
+    constexpr derived_type& operator--() DECL_NOEXCEPT
     {
         auto& derived = AsDerived();
         derived.Decrement(1);
         return derived;
     }
 
-    derived_type operator--(int) noexcept
+    derived_type operator--(int) DECL_NOEXCEPT
     {
         auto& derived = AsDerived();
         auto temp     = derived;
@@ -91,60 +92,60 @@ public:
         return temp;
     }
 
-    constexpr derived_type& operator+=(const difference_type size) noexcept
+    constexpr derived_type& operator+=(const difference_type size) DECL_NOEXCEPT
     {
         auto& derived = AsDerived();
         derived.Increment(size);
         return derived;
     }
 
-    DECL_NODISCARD constexpr derived_type operator+(const difference_type size) const noexcept
+    DECL_NODISCARD constexpr derived_type operator+(const difference_type size) const DECL_NOEXCEPT
     {
         auto temp = AsDerived();
         temp.Increment(size);
         return temp;
     }
 
-    constexpr derived_type& operator-=(const difference_type size) noexcept
+    constexpr derived_type& operator-=(const difference_type size) DECL_NOEXCEPT
     {
         auto& derived = AsDerived();
         derived.Decrement(size);
         return derived;
     }
 
-    DECL_NODISCARD constexpr derived_type operator-(const difference_type size) const noexcept
+    DECL_NODISCARD constexpr derived_type operator-(const difference_type size) const DECL_NOEXCEPT
     {
         derived_type temp = AsDerived();
         temp.Decrement(size);
         return temp;
     }
 
-    DECL_NODISCARD constexpr difference_type operator-(const derived_type& r) const noexcept
+    DECL_NODISCARD constexpr difference_type operator-(const derived_type& r) const DECL_NOEXCEPT
     {
         auto& derived = AsDerived();
         return derived.Distance(r);
     }
 
-    DECL_NODISCARD friend constexpr bool operator<(const derived_type& l, const derived_type& r) noexcept { return LessThan(l, r); }
+    DECL_NODISCARD friend constexpr bool operator<(const derived_type& l, const derived_type& r) DECL_NOEXCEPT { return LessThan(l, r); }
 
-    DECL_NODISCARD friend constexpr bool operator<=(const derived_type& l, const derived_type& r) noexcept { return LessThan(l, r) || Equals(l, r); }
+    DECL_NODISCARD friend constexpr bool operator<=(const derived_type& l, const derived_type& r) DECL_NOEXCEPT { return LessThan(l, r) || Equals(l, r); }
 
-    DECL_NODISCARD friend constexpr bool operator==(const derived_type& l, const derived_type& r) noexcept { return Equals(l, r); }
+    DECL_NODISCARD friend constexpr bool operator==(const derived_type& l, const derived_type& r) DECL_NOEXCEPT { return Equals(l, r); }
 
-    DECL_NODISCARD friend constexpr bool operator!=(const derived_type& l, const derived_type& r) noexcept { return !Equals(l, r); }
+    DECL_NODISCARD friend constexpr bool operator!=(const derived_type& l, const derived_type& r) DECL_NOEXCEPT { return !Equals(l, r); }
 
-    DECL_NODISCARD friend constexpr bool operator>(const derived_type& l, const derived_type& r) noexcept { return !LessThan(l, r) && !Equals(l, r); }
+    DECL_NODISCARD friend constexpr bool operator>(const derived_type& l, const derived_type& r) DECL_NOEXCEPT { return !LessThan(l, r) && !Equals(l, r); }
 
-    DECL_NODISCARD friend constexpr bool operator>=(const derived_type& l, const derived_type& r) noexcept { return !LessThan(l, r); }
+    DECL_NODISCARD friend constexpr bool operator>=(const derived_type& l, const derived_type& r) DECL_NOEXCEPT { return !LessThan(l, r); }
 
 private:
-    DECL_NODISCARD derived_type& AsDerived() noexcept { return static_cast<derived_type&>(*this); }
+    DECL_NODISCARD derived_type& AsDerived() DECL_NOEXCEPT { return static_cast<derived_type&>(*this); }
 
-    DECL_NODISCARD const derived_type& AsDerived() const noexcept { return static_cast<const derived_type&>(*this); }
+    DECL_NODISCARD const derived_type& AsDerived() const DECL_NOEXCEPT { return static_cast<const derived_type&>(*this); }
 
-    DECL_NODISCARD static constexpr bool Equals(const derived_type& l, const derived_type& r) noexcept { return l.Equals(r); }
+    DECL_NODISCARD static constexpr bool Equals(const derived_type& l, const derived_type& r) DECL_NOEXCEPT { return l.Equals(r); }
 
-    DECL_NODISCARD static constexpr bool LessThan(const derived_type& l, const derived_type& r) noexcept { return l.LessThan(r); }
+    DECL_NODISCARD static constexpr bool LessThan(const derived_type& l, const derived_type& r) DECL_NOEXCEPT { return l.LessThan(r); }
 };
 
 // 通用的随机访问读写迭代器模板
@@ -171,18 +172,24 @@ public:
     using iterator_category = typename base_type::iterator_category;
 
 #ifndef NDEBUG
-    constexpr RandomIterator() noexcept
-        : m_data(nullptr), m_size(0), m_offset(0)
+    constexpr RandomIterator() DECL_NOEXCEPT
+        : m_data(nullptr),
+          m_size(0),
+          m_offset(0)
     {
     }
 
-    constexpr explicit RandomIterator(pointer data, size_t size, size_t offset) noexcept
-        : m_data(data), m_size(size), m_offset(offset) {}
+    constexpr explicit RandomIterator(pointer data, size_t size, size_t offset) DECL_NOEXCEPT
+        : m_data(data),
+          m_size(size),
+          m_offset(offset) {}
 
-    constexpr RandomIterator(const RandomIterator<T, true>& iter) noexcept
-        : m_data(iter.m_data), m_size(iter.m_size), m_offset(iter.m_offset) {}
+    constexpr RandomIterator(const RandomIterator<T, true>& iter) DECL_NOEXCEPT
+        : m_data(iter.m_data),
+          m_size(iter.m_size),
+          m_offset(iter.m_offset) {}
 
-    constexpr RandomIterator& operator=(const const RandomIterator<T, true>& iter) noexcept
+    constexpr RandomIterator& operator=(const RandomIterator<T, true>& iter) DECL_NOEXCEPT
     {
         m_data   = iter.m_data;
         m_size   = iter.m_size;
@@ -190,33 +197,33 @@ public:
         return *this;
     }
 #else
-    constexpr RandomIterator() noexcept
+    constexpr RandomIterator() DECL_NOEXCEPT
         : m_data(nullptr)
     {
     }
-    constexpr explicit RandomIterator(pointer data) noexcept
+    constexpr explicit RandomIterator(pointer data) DECL_NOEXCEPT
         : m_data(data) {}
 
-    constexpr RandomIterator(const RandomIterator<T, true>& iter) noexcept
+    constexpr RandomIterator(const RandomIterator<T, true>& iter) DECL_NOEXCEPT
         : m_data(iter.m_data) {}
 
-    constexpr RandomIterator& operator=(const const RandomIterator<T, true>& iter) noexcept
+    constexpr RandomIterator& operator=(const const RandomIterator<T, true>& iter) DECL_NOEXCEPT
     {
         m_data = iter.m_data;
         return *this;
     }
 #endif
 
-    DECL_NODISCARD constexpr reference operator[](const difference_type offset) const noexcept
+    DECL_NODISCARD constexpr reference operator[](const difference_type offset) const DECL_NOEXCEPT
     {
         return *(*this + offset);
     }
-    DECL_NODISCARD constexpr pointer Unwrapped() noexcept
+    DECL_NODISCARD constexpr pointer Unwrapped() DECL_NOEXCEPT
     {
         return m_data;
     }
 
-    DECL_NODISCARD constexpr reference Dereference() const noexcept
+    DECL_NODISCARD constexpr reference Dereference() const DECL_NOEXCEPT
     {
 #ifndef NDEBUG
         ASSERT(m_data != nullptr, "Iterator not initialized");
@@ -227,7 +234,7 @@ public:
 #endif
     }
 
-    constexpr void Increment(const difference_type n) noexcept
+    constexpr void Increment(const difference_type n) DECL_NOEXCEPT
     {
 #ifndef NDEBUG
         ASSERT(m_data != nullptr, "Iterator not initialized");
@@ -245,7 +252,7 @@ public:
 #endif
     }
 
-    constexpr void Decrement(const difference_type n) noexcept
+    constexpr void Decrement(const difference_type n) DECL_NOEXCEPT
     {
 #ifndef NDEBUG
         ASSERT(m_data != nullptr, "Iterator not initialized");
@@ -264,7 +271,7 @@ public:
 #endif
     }
 
-    DECL_NODISCARD constexpr bool Equals(const RandomIterator& r) const noexcept
+    DECL_NODISCARD constexpr bool Equals(const RandomIterator& r) const DECL_NOEXCEPT
     {
 #ifndef NDEBUG
         ASSERT(m_data == r.m_data && m_size == r.m_size, "Iterators incompatible");
@@ -274,7 +281,7 @@ public:
 #endif
     }
 
-    DECL_NODISCARD constexpr bool LessThan(const RandomIterator& r) const noexcept
+    DECL_NODISCARD constexpr bool LessThan(const RandomIterator& r) const DECL_NOEXCEPT
     {
 #ifndef NDEBUG
         ASSERT(m_data == r.m_data && m_size == r.m_size, "Iterators incompatible");
@@ -284,7 +291,7 @@ public:
 #endif
     };
 
-    DECL_NODISCARD constexpr difference_type Distance(const RandomIterator& r) const noexcept
+    DECL_NODISCARD constexpr difference_type Distance(const RandomIterator& r) const DECL_NOEXCEPT
     {
 #ifndef NDEBUG
         ASSERT(m_data == r.m_data && m_size == r.m_size, "Iterators incompatible");

@@ -26,7 +26,7 @@ struct TreeContainerTypes
     using reference       = R;
     using const_reference = CR;
     using node_type       = N;
-    using node_pointer    = typename node_type::pointer;
+    using node_pointer    = typename node_type::node_pointer;
     using comparator_type = C;
 };
 struct element_copy_construct_tag

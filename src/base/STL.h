@@ -42,7 +42,7 @@ DECL_INLINE_VAR DECL_CONSTEXPR11 bool is_array_v = is_array<T>::value;
 #endif
 
 template <class T>
-DECL_CONSTEXPR11 void destroy_at(const T* localtion) noexcept
+DECL_CONSTEXPR11 void destroy_at(const T* localtion) DECL_NOEXCEPT
 {
     if constexpr (is_array_v<T>)
     {
@@ -192,8 +192,8 @@ DECL_INLINE_VAR DECL_CONSTEXPR11 bool is_swappable_v = is_swappable<T>::value;
 #endif
 
 template <class T1, class T2>
-struct swap_cannot_throw : bool_constant<noexcept(swap(std::declval<T1>(), std::declval<T2>())) //
-                                             && noexcept(swap(std::declval<T2>(), std::declval<T1>()))>
+struct swap_cannot_throw : bool_constant<DECL_NOEXCEPT(swap(std::declval<T1>(), std::declval<T2>())) //
+                                             && DECL_NOEXCEPT(swap(std::declval<T2>(), std::declval<T1>()))>
 {
 };
 
@@ -249,9 +249,9 @@ using remove_cvref_t = typename remove_cvref<T>::type;
 
 #pragma region construst at
 template <class Iter>
-DECL_NODISCARD DECL_CONSTEXPR11 void* voidptr_iter(Iter iter) noexcept;
+DECL_NODISCARD DECL_CONSTEXPR11 void* voidptr_iter(Iter iter) DECL_NOEXCEPT;
 template <class T, class... Types, class = std::void_t<decltype(::new (std::declval<void*>()) T(std::declval<Types>()...))>>
-DECL_CONSTEXPR11 T* construct_at(const T* localtion, Types&&... Args) noexcept(noexcept(::new (std::voidptr_iter(localtion)) T(std::forward<Types>(Args)...)))
+DECL_CONSTEXPR11 T* construct_at(const T* localtion, Types&&... Args) DECL_NOEXCEPT(DECL_NOEXCEPT(::new (std::voidptr_iter(localtion)) T(std::forward<Types>(Args)...)))
 {
     return ::new (std::voidptr_iter(localtion)) T(std::forward<Types>(Args)...);
 }
@@ -275,7 +275,7 @@ inline void unreachable()
 #pragma region À©Õ¹
 #pragma region iterator
 template <class Iter>
-DECL_NODISCARD DECL_CONSTEXPR11 void* voidptr_iter(Iter iter) noexcept
+DECL_NODISCARD DECL_CONSTEXPR11 void* voidptr_iter(Iter iter) DECL_NOEXCEPT
 {
     if constexpr (is_pointer<Iter>::value)
     {
@@ -626,7 +626,7 @@ struct meta_cartesian_product_impl<List1<List2<Items...>, Lists...>>
 
 #pragma region construct or destroy in place
 template <class T, class... Args>
-DECL_CONSTEXPR11 void construct_in_place(T& obj, Args&&... args) noexcept(is_nothrow_constructible<T, Args...>::value)
+DECL_CONSTEXPR11 void construct_in_place(T& obj, Args&&... args) DECL_NOEXCEPT(is_nothrow_constructible<T, Args...>::value)
 {
 #if _HAS_CXX20
     if (std::is_constant_evaluated())
@@ -641,7 +641,7 @@ DECL_CONSTEXPR11 void construct_in_place(T& obj, Args&&... args) noexcept(is_not
 }
 
 template <class T>
-DECL_CONSTEXPR11 void destroy_in_place(const T& obj) noexcept
+DECL_CONSTEXPR11 void destroy_in_place(const T& obj) DECL_NOEXCEPT
 {
     if constexpr (is_array_v<T>)
     {
@@ -702,7 +702,7 @@ template <class Iter>
 DECL_INLINE_VAR DECL_CONSTEXPR11 bool is_unwrappable_iter_v<Iter, std::void_t<decltype(std::declval<Iter>().Unwrapped())>> = true;
 
 template <class Iter>
-DECL_NODISCARD DECL_CONSTEXPR11 auto get_unwrapped(Iter&& iter) noexcept
+DECL_NODISCARD DECL_CONSTEXPR11 auto get_unwrapped(Iter&& iter) DECL_NOEXCEPT
 {
     if constexpr (std::is_iterator_v<Iter>)
     {
@@ -803,7 +803,7 @@ struct is_trivially_swappable : bool_constant<is_trivially_swappable_v<T>>
 {
 };
 template <class T>
-DECL_CONSTEXPR11 void swap_adl(T& l, T& r) noexcept(is_nothrow_swappable<T>::value)
+DECL_CONSTEXPR11 void swap_adl(T& l, T& r) DECL_NOEXCEPT(is_nothrow_swappable<T>::value)
 {
     swap(l, r);
 }

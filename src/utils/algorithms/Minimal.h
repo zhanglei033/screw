@@ -6,8 +6,10 @@
 #include "base/STL.h"
 #include "base/TypesDef.h"
 #include "base/Variant.h"
+#include "base/Assert.h"
 #include <list>
 #include <vector>
+#include <string>
 namespace screw {
 namespace algo {
 namespace Minimal {

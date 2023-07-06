@@ -1,7 +1,7 @@
 #pragma once
 #include "base/Platform.h"
 namespace screw {
-namespace data_structure {
+namespace container {
 template <class VT, class ST, class DT, class P, class CP, class R, class CR>
 struct DefaultContainerTypes
 {
@@ -27,13 +27,15 @@ struct TreeContainerTypes
     using const_reference = CR;
     using node_type       = N;
     using node_pointer    = typename node_type::node_pointer;
-    using comparator_type = C;
-};
-struct element_copy_construct_tag
-{
+    using value_compare = C;
 };
 
-struct element_move_construct_tag
+// 元素对象拷贝构造
+struct element_copy_construct_tag 
+{
+};
+// 元素移动拷贝构造
+struct element_move_construct_tag 
 {
 };
 

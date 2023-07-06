@@ -13,9 +13,9 @@ public:
     using derived_type      = Derived;
     using value_type        = Elem;
     using size_type         = size_t;
-    using reference         = const value_type&;
+    using reference         = value_type&;
     using const_reference   = const value_type&;
-    using pointer           = const value_type*;
+    using pointer           = value_type*;
     using const_pointer     = const value_type*;
     using difference_type   = ptrdiff_t;
     using iterator_category = Category;
@@ -127,16 +127,14 @@ public:
     }
 
     DECL_NODISCARD friend constexpr bool operator<(const derived_type& l, const derived_type& r) DECL_NOEXCEPT { return LessThan(l, r); }
+    DECL_NODISCARD friend constexpr bool operator>(const derived_type& l, const derived_type& r) DECL_NOEXCEPT { return LessThan(r, l); }
 
-    DECL_NODISCARD friend constexpr bool operator<=(const derived_type& l, const derived_type& r) DECL_NOEXCEPT { return LessThan(l, r) || Equals(l, r); }
+    DECL_NODISCARD friend constexpr bool operator<=(const derived_type& l, const derived_type& r) DECL_NOEXCEPT { return !(l > r); }
+    DECL_NODISCARD friend constexpr bool operator>=(const derived_type& l, const derived_type& r) DECL_NOEXCEPT { return !(l < r); }
 
     DECL_NODISCARD friend constexpr bool operator==(const derived_type& l, const derived_type& r) DECL_NOEXCEPT { return Equals(l, r); }
 
     DECL_NODISCARD friend constexpr bool operator!=(const derived_type& l, const derived_type& r) DECL_NOEXCEPT { return !Equals(l, r); }
-
-    DECL_NODISCARD friend constexpr bool operator>(const derived_type& l, const derived_type& r) DECL_NOEXCEPT { return !LessThan(l, r) && !Equals(l, r); }
-
-    DECL_NODISCARD friend constexpr bool operator>=(const derived_type& l, const derived_type& r) DECL_NOEXCEPT { return !LessThan(l, r); }
 
 private:
     DECL_NODISCARD derived_type& AsDerived() DECL_NOEXCEPT { return static_cast<derived_type&>(*this); }
@@ -184,18 +182,19 @@ public:
           m_size(size),
           m_offset(offset) {}
 
-    constexpr RandomIterator(const RandomIterator<T, true>& iter) DECL_NOEXCEPT
+    constexpr RandomIterator(const RandomIterator<T, false>& iter) DECL_NOEXCEPT
         : m_data(iter.m_data),
           m_size(iter.m_size),
           m_offset(iter.m_offset) {}
 
-    constexpr RandomIterator& operator=(const RandomIterator<T, true>& iter) DECL_NOEXCEPT
+    constexpr RandomIterator& operator=(const RandomIterator<T, false>& iter) DECL_NOEXCEPT
     {
         m_data   = iter.m_data;
         m_size   = iter.m_size;
         m_offset = iter.m_offset;
         return *this;
     }
+
 #else
     constexpr RandomIterator() DECL_NOEXCEPT
         : m_data(nullptr)
@@ -204,10 +203,10 @@ public:
     constexpr explicit RandomIterator(pointer data) DECL_NOEXCEPT
         : m_data(data) {}
 
-    constexpr RandomIterator(const RandomIterator<T, true>& iter) DECL_NOEXCEPT
+    constexpr RandomIterator(const RandomIterator<T, false>& iter) DECL_NOEXCEPT
         : m_data(iter.m_data) {}
 
-    constexpr RandomIterator& operator=(const const RandomIterator<T, true>& iter) DECL_NOEXCEPT
+    constexpr RandomIterator& operator=(const const RandomIterator<T, false>& iter) DECL_NOEXCEPT
     {
         m_data = iter.m_data;
         return *this;
@@ -301,13 +300,43 @@ public:
 #endif
     }
 
-private:
+#ifndef NDEBUG
+    friend void VerifyIterRange(const RandomIterator& first, const RandomIterator& last) noexcept
+    {
+        ASSERT(first.m_data == last.m_data && first.m_size == last.m_size, "Iterators incompatible");
+        ASSERT(first.m_offset < last.m_offset, "Iterators range error");
+    }
+#endif
+
     pointer m_data;
 #ifndef NDEBUG
     size_t m_size = 0;
     size_t m_offset;
 #endif
 };
+
+template <class T>
+constexpr void VerifyIterRange(const T* const first, const T* const last) DECL_NOEXCEPT
+{
+#ifndef NDEBUG
+    ASSERT(first <= last, "Iterators incompatible");
+#endif
+}
+
+template <class Iter, class Sentinel = Iter, class = void>
+DECL_INLINE_VAR constexpr bool is_range_verifiable_v = false;
+
+template <class Iter, class Sentinel>
+DECL_INLINE_VAR constexpr bool is_range_verifiable_v<Iter, Sentinel, std::void_t<decltype(VerifyIterRange(std::declval<const Iter&>(), std::declval<const Sentinel&>()))>> = true;
+
+template <class Iter, class Sentinel>
+constexpr void VerifyIterRangeADL(const Iter& first, const Sentinel& last)
+{
+    if constexpr (is_range_verifiable_v<Iter, Sentinel>)
+    {
+        VerifyIterRange(first, last);
+    }
+}
 
 template <class T, bool IsConst>
 DECL_NODISCARD DECL_CONSTEXPR11 RandomIterator<T, IsConst> operator+(const typename RandomIterator<T, IsConst>::difference_type offset, RandomIterator<T, IsConst> iter) DECL_NOEXCEPT

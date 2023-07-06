@@ -898,7 +898,7 @@ constexpr bool test_case_swap()
 void test_case_at_out_of_range()
 {
     string_view sv("text");
-    //assert_throws<out_of_range>([&] { return sv.at(4); });
+    // assert_throws<out_of_range>([&] { return sv.at(4); });
 }
 
 using copy_buff_ty = char[5];
@@ -948,7 +948,7 @@ void test_case_copy_out_of_range()
 {
     string_view sv("text");
     copy_buff_ty buffer;
-    //assert_throws<out_of_range>([&] { sv.copy(buffer, 4, 10); });
+    // assert_throws<out_of_range>([&] { sv.copy(buffer, 4, 10); });
 }
 
 template <class Traits>
@@ -966,7 +966,7 @@ constexpr bool test_case_substr()
 
 void test_case_substr_out_of_range()
 {
-    //assert_throws<out_of_range>([] { return string_view("text").substr(5); });
+    // assert_throws<out_of_range>([] { return string_view("text").substr(5); });
 }
 
 template <class CharT, class Traits>
@@ -1014,11 +1014,11 @@ constexpr bool test_case_compare()
 
 void test_case_compare_out_of_range()
 {
-    //assert_throws<out_of_range>([] { return string_view{"hi"}.compare(10, 2, string_view{}); });
-    //assert_throws<out_of_range>([] { return string_view{"hi"}.compare(10, 2, string_view{"other"}, 4, 2); });
-    //assert_throws<out_of_range>([] { return string_view{"hi"}.compare(0, 2, string_view{"other"}, 6, 2); });
-    //assert_throws<out_of_range>([] { return string_view{"hi"}.compare(3, 0, "hello"); });
-    //assert_throws<out_of_range>([] { return string_view{"hi"}.compare(3, 0, "hello", 5); });
+    // assert_throws<out_of_range>([] { return string_view{"hi"}.compare(10, 2, string_view{}); });
+    // assert_throws<out_of_range>([] { return string_view{"hi"}.compare(10, 2, string_view{"other"}, 4, 2); });
+    // assert_throws<out_of_range>([] { return string_view{"hi"}.compare(0, 2, string_view{"other"}, 6, 2); });
+    // assert_throws<out_of_range>([] { return string_view{"hi"}.compare(3, 0, "hello"); });
+    // assert_throws<out_of_range>([] { return string_view{"hi"}.compare(3, 0, "hello", 5); });
 }
 
 template <class CharT, class Traits, bool TestBasicString>

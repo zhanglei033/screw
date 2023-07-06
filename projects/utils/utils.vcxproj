@@ -93,12 +93,12 @@
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp14</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\src;$(SolutionDir)..\src\utils;$(SolutionDir)..\src\mimalloc</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\src;$(SolutionDir)..\src\utils;$(SolutionDir)..\src\mimalloc;$(SolutionDir)..\src\googletest</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>mimalloc.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>mimalloc.lib;gtest.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(OutDir)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
@@ -111,14 +111,20 @@
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp14</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\src;$(SolutionDir)..\src\utils;$(SolutionDir)..\src\mimalloc</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\src;$(SolutionDir)..\src\utils;$(SolutionDir)..\src\mimalloc;$(SolutionDir)..\src\googletest</AdditionalIncludeDirectories>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <OmitFramePointers>true</OmitFramePointers>
+      <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
+      <Optimization>Full</Optimization>
+      <FloatingPointModel>Fast</FloatingPointModel>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>mimalloc.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>mimalloc.lib;gtest.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(OutDir)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
@@ -128,13 +134,13 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\src;$(SolutionDir)..\src\utils;$(SolutionDir)..\src\mimalloc</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\src;$(SolutionDir)..\src\utils;$(SolutionDir)..\src\mimalloc;$(SolutionDir)..\src\googletest</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp14</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>mimalloc.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>mimalloc.lib;gtest.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(OutDir)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
@@ -146,15 +152,21 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\src;$(SolutionDir)..\src\utils;$(SolutionDir)..\src\mimalloc</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\src;$(SolutionDir)..\src\utils;$(SolutionDir)..\src\mimalloc;$(SolutionDir)..\src\googletest</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp14</LanguageStandard>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <OmitFramePointers>true</OmitFramePointers>
+      <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
+      <Optimization>Full</Optimization>
+      <FloatingPointModel>Fast</FloatingPointModel>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>mimalloc.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>mimalloc.lib;gtest.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(OutDir)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
@@ -185,6 +197,7 @@
     <ClInclude Include="..\..\src\utils\algorithms\SHA.h" />
     <ClInclude Include="..\..\src\utils\algorithms\XXTEA.h" />
     <ClInclude Include="..\..\src\utils\container\ContainerBase.h" />
+    <ClInclude Include="..\..\src\utils\container\ConcurrentMap.h" />
     <ClInclude Include="..\..\src\utils\data structure\RBTree.h" />
   </ItemGroup>
   <ItemGroup>
@@ -380,6 +393,9 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="..\..\src\test\ConcurrentMapTest.cpp" />
+    <ClCompile Include="..\..\src\test\StringViewTest.cpp" />
+    <ClCompile Include="..\..\src\test\VariantTest.cpp" />
     <ClCompile Include="..\..\src\utils\algorithms\AES.cpp" />
     <ClCompile Include="..\..\src\utils\algorithms\Base64.cpp" />
     <ClCompile Include="..\..\src\utils\algorithms\CRC32.cpp" />

@@ -34,6 +34,12 @@
     <Filter Include="源文件\algorithms">
       <UniqueIdentifier>{0bbfc185-3295-4a3d-9a1e-7737d5674754}</UniqueIdentifier>
     </Filter>
+    <Filter Include="源文件\test">
+      <UniqueIdentifier>{fdeb927e-2513-4fe8-b831-b74381a583d9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\test">
+      <UniqueIdentifier>{baf34577-889a-424b-8e5b-e1388ec13503}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\base\Assert.h">
@@ -115,6 +121,9 @@
       <Filter>头文件\data structure</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\utils\container\ContainerBase.h">
+      <Filter>头文件\container</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\utils\container\ConcurrentMap.h">
       <Filter>头文件\container</Filter>
     </ClInclude>
   </ItemGroup>
@@ -238,6 +247,15 @@
     </ClCompile>
     <ClCompile Include="..\..\src\utils\algorithms\SHA.cpp">
       <Filter>源文件\algorithms</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\test\StringViewTest.cpp">
+      <Filter>源文件\test</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\test\VariantTest.cpp">
+      <Filter>源文件\test</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\test\ConcurrentMapTest.cpp">
+      <Filter>源文件\test</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

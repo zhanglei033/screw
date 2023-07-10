@@ -136,12 +136,12 @@ public:
 
     DECL_NODISCARD mapped_type operator[](key_type&& key)
     {
-        return try_emplace_impl(std::move(key)).first->Value().second;
+        return try_emplace_impl(std::move(key)).first->GetValue().second;
     }
 
     DECL_NODISCARD mapped_type& operator[](const key_type& key)
     {
-        return try_emplace_impl(key).first->Value().second;
+        return try_emplace_impl(key).first->GetValue().second;
     }
 
     DECL_NODISCARD bool operator==(ConcurrentMap& other)
@@ -175,16 +175,16 @@ public:
     {
         auto result        = m_ctrl.m_cont.FindLower(key);
         node_pointer bound = result.m_bound;
-        ThrowException(!bound->IsNull() && !value_comparator_traits::Compare(key, bound->Value()), "invalid key");
-        return bound->Value().second;
+        ThrowException(!bound->IsNull() && !value_comparator_traits::Compare(key, bound->GetValue()), "invalid key");
+        return bound->GetValue().second;
     }
 
     DECL_NODISCARD const mapped_type& at(const key_type& key) const
     {
         auto result        = m_ctrl.m_cont.FindLower(key);
         node_pointer bound = result.m_bound;
-        ThrowException(!bound->IsNull() && !value_comparator_traits::Compare(key, bound->Value()), "invalid key");
-        return bound->Value().second;
+        ThrowException(!bound->IsNull() && !value_comparator_traits::Compare(key, bound->GetValue()), "invalid key");
+        return bound->GetValue().second;
     }
 
     void swap(ConcurrentMap& other) noexcept(noexcept(mybase::swap(other)))
@@ -256,9 +256,9 @@ public:
     {
         auto result        = m_ctrl.m_cont.FindLower(key);
         node_pointer bound = result.m_bound;
-        if (!bound->IsNull() && !value_comparator_traits::Compare(key, bound->Value()))
+        if (!bound->IsNull() && !value_comparator_traits::Compare(key, bound->GetValue()))
         {
-            bound->Value().second = std::forward<MappedT>(mapped);
+            bound->GetValue().second = std::forward<MappedT>(mapped);
 
             return std::make_pair(iterator(bound, &m_ctrl.m_cont), false);
         }
@@ -272,9 +272,9 @@ public:
     {
         auto result        = m_ctrl.m_cont.FindLower(key);
         node_pointer bound = result.m_bound;
-        if (!bound->IsNull() && !value_comparator_traits::Compare(key, bound->Value()))
+        if (!bound->IsNull() && !value_comparator_traits::Compare(key, bound->GetValue()))
         {
-            bound->Value().second = std::forward<MappedT>(mapped);
+            bound->GetValue().second = std::forward<MappedT>(mapped);
 
             return std::make_pair(iterator(bound, &m_ctrl.m_cont), false);
         }
@@ -290,7 +290,7 @@ public:
         auto result = m_ctrl.m_cont.FindHint(GetNodePtr(pos), key);
         if (result.m_isDuplicate)
         {
-            result.m_parent->Value().second = std::forward<MappedT>(mapped);
+            result.m_parent->GetValue().second = std::forward<MappedT>(mapped);
             return iterator(result.m_parent, &m_ctrl.m_cont);
         }
         ThrowException(max_size() != m_ctrl.m_cont.GetSize(), "too long");
@@ -304,7 +304,7 @@ public:
         auto result = m_ctrl.m_cont.FindHint(GetNodePtr(pos), key);
         if (result.m_isDuplicate)
         {
-            result.m_parent->Value().second = std::forward<MappedT>(mapped);
+            result.m_parent->GetValue().second = std::forward<MappedT>(mapped);
             return iterator(result.m_parent, &m_ctrl.m_cont);
         }
         ThrowException(max_size() != m_ctrl.m_cont.GetSize(), "too long");
@@ -318,7 +318,7 @@ private:
     {
         auto result        = m_ctrl.m_cont.FindLower(key);
         node_pointer bound = result.m_bound;
-        if (!bound->IsNull() && !value_comparator_traits::Compare(key, bound->Value()))
+        if (!bound->IsNull() && !value_comparator_traits::Compare(key, bound->GetValue()))
         {
             return std::make_pair(bound, false);
         }

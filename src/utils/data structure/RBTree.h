@@ -66,12 +66,13 @@ private:
     {
         if (m_ptr != nullptr)
         {
-            m_cont->DestroyNode(node_allocator_type{}, m_ptr);
+            node_allocator_type alloc;
+            m_cont->DestroyNode(alloc, m_ptr);
             m_ptr = nullptr;
         }
     }
 
-    NodeHandle(const node_pointer ptr, Container* cont) DECL_NOEXCEPT
+    NodeHandle(node_pointer ptr, Container* cont) DECL_NOEXCEPT
         : m_ptr{ptr},
           m_cont{cont}
     {
@@ -130,9 +131,9 @@ public:
         l.swap(r);
     }
 
-    static NodeHandle Make(const node_pointer m_ptr, const allocator_type& allocator)
+    static NodeHandle Make(node_pointer m_ptr, const Container* cont)
     {
-        return NodeHandle{m_ptr, allocator};
+        return NodeHandle(m_ptr, const_cast<Container*>(cont));
     }
 };
 
@@ -247,7 +248,7 @@ struct RBTreeNode
     using node_allocator_traits = std::allocator_traits<node_allocator_type>;
     using node_pointer          = typename node_allocator_traits::pointer;
 
-    enum Color : bool
+    enum class NodeColor : bool
     {
         Red   = true,
         Black = false
@@ -258,96 +259,62 @@ struct RBTreeNode
     RBTreeNode& operator=(const RBTreeNode&) = delete;
 
     // 左节点
-    DECL_NODISCARD node_pointer& Left() DECL_NOEXCEPT { return m_left; }
-    DECL_NODISCARD const node_pointer& Left() const DECL_NOEXCEPT { return m_left; }
+    DECL_NODISCARD node_pointer GetLeft() const DECL_NOEXCEPT { return m_left; }
+    DECL_NODISCARD node_pointer SetLeft(node_pointer left) DECL_NOEXCEPT { return m_left = left; }
 
-    // 叔父节点
-    DECL_NODISCARD node_pointer& Right() DECL_NOEXCEPT { return m_right; }
-    DECL_NODISCARD const node_pointer& Right() const DECL_NOEXCEPT { return m_right; }
+    // 右节点
+    DECL_NODISCARD node_pointer GetRight() const DECL_NOEXCEPT { return m_right; }
+    DECL_NODISCARD node_pointer SetRight(node_pointer right) DECL_NOEXCEPT { return m_right = right; }
 
-    // 祖父节点
-    DECL_NODISCARD node_pointer& Parent() DECL_NOEXCEPT { return m_parent; }
-    DECL_NODISCARD const node_pointer& Parent() const DECL_NOEXCEPT { return m_parent; }
-
-    // 兄弟节点
-    DECL_NODISCARD node_pointer& Sibling() DECL_NOEXCEPT { return IsLeft() ? m_right : m_left; }
-    DECL_NODISCARD const node_pointer& Sibling() const DECL_NOEXCEPT { return IsLeft() ? m_right : m_left; }
-
-    // 叔父节点
-    DECL_NODISCARD node_pointer& Uncle() DECL_NOEXCEPT { return m_parent->Sibling(); }
-    DECL_NODISCARD const node_pointer& Uncle() const DECL_NOEXCEPT { return m_parent->Sibling(); }
-
-    // 祖父节点
-    DECL_NODISCARD node_pointer& Grandparent() DECL_NOEXCEPT { return m_parent->Parent(); }
-    DECL_NODISCARD const node_pointer& Grandparent() const DECL_NOEXCEPT { return m_parent->Parent(); }
+    // 父节点
+    DECL_NODISCARD node_pointer GetParent() const DECL_NOEXCEPT { return m_parent; }
+    DECL_NODISCARD node_pointer SetParent(node_pointer parent) DECL_NOEXCEPT { return m_parent = parent; }
 
     // 判断当前节点是否是root节点
-    // root的父节点是head节点，head节点的父节点是root节点
-    // DECL_NODISCARD bool IsRoot() const DECL_NOEXCEPT { return m_parent->Parent() == *this; }
     // root的父节点是head节点，head节点是空节点
-    DECL_NODISCARD bool IsRoot() const DECL_NOEXCEPT { return m_parent->IsNull(); }
+    DECL_NODISCARD bool IsRoot() const DECL_NOEXCEPT { return m_parent->m_isNull; }
 
     // 判断当前节点是否是左节点
-    DECL_NODISCARD bool IsLeft() const DECL_NOEXCEPT { return m_parent->Left() == this; }
+    DECL_NODISCARD bool IsLeft() const DECL_NOEXCEPT { return m_parent->m_left == this; }
 
     // 判断当前节点是否是右节点
-    DECL_NODISCARD bool IsRight() const DECL_NOEXCEPT { return m_parent->Right() == this; }
+    DECL_NODISCARD bool IsRight() const DECL_NOEXCEPT { return m_parent->m_right == this; }
 
     // 判断当前节点是否是空节点
     DECL_NODISCARD bool IsNull() const DECL_NOEXCEPT { return m_isNull; }
 
-    // 判断当前节点是否是红色节点
-    DECL_NODISCARD bool IsRed() const DECL_NOEXCEPT { return m_isRed; }
-
-    // 判断当前节点是否是黑色节点
-    DECL_NODISCARD bool IsBlack() const DECL_NOEXCEPT { return !m_isRed; }
-
     // 设置为null节点
     void SetNull() DECL_NOEXCEPT { m_isNull = true; }
-
     // 设置为非null节点
     void SetNotNull() DECL_NOEXCEPT { m_isNull = false; }
 
-
-    // 设置为红色节点
-    void SetRed() DECL_NOEXCEPT { m_isRed = Red; }
-
-    // 设置为黑色节点
-    void SetBlack() DECL_NOEXCEPT { m_isRed = Black; }
-
-    // 交换颜色
-    void SwapColor(node_pointer node) DECL_NOEXCEPT { std::swap(m_isRed, node->m_isRed); }
-
-    // 获取引用计数
-    DECL_NODISCARD size_t Uses() DECL_NOEXCEPT { return m_uses.load(); }
-
-    // 增加引用计数
-    void IncrementRef() DECL_NOEXCEPT { m_uses.fetch_add(1); }
-
-    // 减少引用计数
-    void DecrementRef() DECL_NOEXCEPT { m_uses.fetch_sub(1); }
-
     // 节点值
-    value_type& Value() DECL_NOEXCEPT { return m_value; }
-    const value_type& Value() const DECL_NOEXCEPT { return m_value; }
+    DECL_NODISCARD value_type& GetValue() DECL_NOEXCEPT { return m_value; }
+    DECL_NODISCARD const value_type& GetValue() const DECL_NOEXCEPT { return m_value; }
+    const value_type& SetValue(const value_type& value) DECL_NOEXCEPT { return m_value = value; }
+    const value_type& SetValue(value_type&& value) DECL_NOEXCEPT { return m_value = std::move(value); }
+
+    DECL_NODISCARD NodeColor GetColor() const DECL_NOEXCEPT { return m_color; }
+    NodeColor SetColor(NodeColor color) DECL_NOEXCEPT { return m_color = color; }
+    void SwapColor(node_pointer node) DECL_NOEXCEPT { std::swap(m_color, node->m_color); }
 
     // 设置左节点
-    void SetLeft(node_pointer left) DECL_NOEXCEPT
+    void LinkLeft(node_pointer left) DECL_NOEXCEPT
     {
         m_left = left;
-        if (!left->IsNull())
+        if (!left->m_isNull)
         {
-            left->Parent() = this;
+            left->m_parent = this;
         }
     }
 
     // 设置右节点
-    void SetRight(node_pointer right) DECL_NOEXCEPT
+    void LinkRight(node_pointer right) DECL_NOEXCEPT
     {
         m_right = right;
-        if (!right->IsNull())
+        if (!right->m_isNull)
         {
-            right->Parent() = this;
+            right->m_parent = this;
         }
     }
 
@@ -355,9 +322,9 @@ struct RBTreeNode
     DECL_NODISCARD node_pointer Max() const DECL_NOEXCEPT
     {
         node_pointer max = const_cast<node_pointer>(this);
-        while (!max->Right()->IsNull())
+        while (!max->m_right->m_isNull)
         {
-            max = max->Right();
+            max = max->m_right;
         }
         return max;
     }
@@ -366,9 +333,9 @@ struct RBTreeNode
     DECL_NODISCARD node_pointer Min() const DECL_NOEXCEPT
     {
         node_pointer min = const_cast<node_pointer>(this);
-        while (!min->Left()->IsNull())
+        while (!min->m_left->m_isNull)
         {
-            min = min->Left();
+            min = min->m_left;
         }
         return min;
     }
@@ -377,10 +344,10 @@ struct RBTreeNode
     DECL_NODISCARD node_pointer Next() const DECL_NOEXCEPT
     {
         node_pointer curNode = const_cast<node_pointer>(this);
-        if (curNode->Right()->IsNull())
+        if (curNode->m_right->m_isNull)
         {
             node_pointer node;
-            while (!(node = curNode->Parent())->IsNull() && curNode == node->Right())
+            while (!(node = curNode->m_parent)->m_isNull && curNode == node->m_right)
             {
                 curNode = node;
             }
@@ -388,7 +355,7 @@ struct RBTreeNode
         }
         else
         {
-            curNode = curNode->Right()->Min();
+            curNode = curNode->m_right->Min();
         }
         return curNode;
     }
@@ -397,26 +364,26 @@ struct RBTreeNode
     DECL_NODISCARD node_pointer Prev() const DECL_NOEXCEPT
     {
         node_pointer curNode = const_cast<node_pointer>(this);
-        if (curNode->IsNull())
+        if (curNode->m_isNull)
         {
-            curNode = curNode->Right();
+            curNode = curNode->m_right;
         }
-        else if (curNode->Left()->IsNull())
+        else if (curNode->m_left->m_isNull)
         {
             node_pointer node;
-            while (!(node = curNode->Parent())->IsNull() && curNode == node->Left())
+            while (!(node = curNode->m_parent)->m_isNull && curNode == node->m_left)
             {
                 curNode = node;
             }
 
-            if (!curNode->IsNull())
+            if (!curNode->m_isNull)
             {
                 curNode = node;
             }
         }
         else
         {
-            curNode = curNode->Left()->Max();
+            curNode = curNode->m_left->Max();
         }
         return curNode;
     }
@@ -424,51 +391,80 @@ struct RBTreeNode
     void Lrotate(node_pointer head) DECL_NOEXCEPT
     {
         node_pointer right = m_right;
-        SetRight(right->Left());
-        right->Parent() = m_parent;
-        if (this == head->Parent())
+        LinkRight(right->m_left);
+        right->m_parent = m_parent;
+        if (this == head->m_parent)
         {
-            head->Parent() = right;
+            head->m_parent = right;
         }
         else if (IsLeft())
         {
-            m_parent->Left() = right;
+            m_parent->m_left = right;
         }
         else
         {
-            m_parent->Right() = right;
+            m_parent->m_right = right;
         }
-        right->SetLeft(this);
+        right->LinkLeft(this);
     }
 
     void Rrotate(node_pointer head) DECL_NOEXCEPT
     {
         node_pointer left = m_left;
-        SetLeft(left->Right());
-        left->Parent() = m_parent;
-        if (this == head->Parent())
+        LinkLeft(left->m_right);
+        left->m_parent = m_parent;
+        if (this == head->m_parent)
         {
-            head->Parent() = left;
+            head->m_parent = left;
         }
         else if (IsRight())
         {
-            m_parent->Right() = left;
+            m_parent->m_right = left;
         }
         else
         {
-            m_parent->Left() = left;
+            m_parent->m_left = left;
         }
-        left->SetRight(this);
+        left->LinkRight(this);
     }
 
-private:
-    node_pointer m_left       = nullptr; // 左节点
-    node_pointer m_right      = nullptr; // 右节点
-    node_pointer m_parent     = nullptr; // 父节点
-    bool m_isRed              = false;   // 是红色节点
-    bool m_isNull             = false;   // 是空节点
-    std::atomic_size_t m_uses = 0;       // 节点的引用计数
-    value_type m_value{};                // 节点所存储的值
+    node_pointer InitNode(node_pointer left, node_pointer parent, node_pointer right, NodeColor color, bool isNull) DECL_NOEXCEPT
+    {
+        std::construct_in_place(m_left, left);
+        std::construct_in_place(m_parent, parent);
+        std::construct_in_place(m_right, right);
+        m_color  = color;
+        m_isNull = isNull;
+        return this;
+    }
+
+    template <class... Args>
+    node_pointer InitNodeValue(Args&&... args) DECL_NOEXCEPT
+    {
+        std::construct_in_place(m_value, std::forward<Args>(args)...);
+        return this;
+    }
+
+    node_pointer FreeNode() DECL_NOEXCEPT
+    {
+        std::destroy_in_place(m_left);
+        std::destroy_in_place(m_parent);
+        std::destroy_in_place(m_right);
+        return this;
+    }
+
+    template <class Alloc>
+    node_pointer DestoryNodeValue(Alloc& alloc) DECL_NOEXCEPT
+    {
+        std::allocator_traits<Alloc>::destroy(alloc, std::addressof(m_value));
+    }
+
+    node_pointer m_left       = nullptr;        // 左节点
+    node_pointer m_parent     = nullptr;        // 父节点
+    node_pointer m_right      = nullptr;        // 右节点
+    NodeColor m_color         = NodeColor::Red; // 节点颜色
+    bool m_isNull             = false;          // 是空节点
+    value_type m_value{};                       // 节点所存储的值
 };
 
 template <class Derived, class Container, bool IsConst>
@@ -553,7 +549,7 @@ public:
         ASSERT(m_cont != nullptr || m_iter != nullptr, "Iterator not initialized");
         ASSERT(!m_iter->IsNull(), "Iterator is last");
 #endif
-        return m_iter->Value();
+        return m_iter->GetValue();
     }
     constexpr void Increment(const difference_type n) DECL_NOEXCEPT
     {
@@ -647,7 +643,7 @@ public:
         ASSERT(m_cont != nullptr || m_iter != nullptr, "Iterator not initialized");
         ASSERT(m_cont == r.m_cont, "Iterators incompatible");
 #endif
-        return !(value_comparator_traits::is_less_v ^ value_comparator_traits::Compare(m_iter->Value(), r.m_iter->Value()));
+        return !(value_comparator_traits::is_less_v ^ value_comparator_traits::Compare(m_iter->GetValue(), r.m_iter->GetValue()));
     };
 
     DECL_NODISCARD constexpr difference_type Distance(const BPTreeIterator& r) const DECL_NOEXCEPT
@@ -697,6 +693,7 @@ public:
     using value_compare           = typename Types::value_compare;
     using value_comparator_traits = ComparatorTraits<value_compare>;
     using node_allocator_type     = typename node_type::node_allocator_type;
+    using node_color              = typename node_type::NodeColor;
 
     using iterator       = BPTreeIterator<RBTreeNodeContainer<Types>, false>;
     using const_iterator = BPTreeIterator<RBTreeNodeContainer<Types>, true>;
@@ -719,25 +716,29 @@ public:
     DECL_NODISCARD constexpr auto GenerateHeadNode(node_allocator_type& alloc) DECL_NOEXCEPT
     {
         node_pointer node = alloc.allocate(1);
-        std::construct_in_place(node->Left(), node);
-        std::construct_in_place(node->Right(), node);
-        std::construct_in_place(node->Parent(), node);
-        node->SetBlack();
-        node->SetNull();
-        return node;
+        return node->InitNode(node, node, node, node_color::Black, true);
     }
     // 生成普通节点
     template <class... Args>
     DECL_NODISCARD constexpr auto GenerateNode(node_allocator_type& alloc, node_pointer head, Args&&... args) DECL_NOEXCEPT
     {
         node_pointer node = alloc.allocate(1);
-        std::construct_in_place(node->Value(), std::forward<Args>(args)...);
-        std::construct_in_place(node->Left(), head);
-        std::construct_in_place(node->Right(), head);
-        std::construct_in_place(node->Parent(), head);
-        node->SetRed();
-        node->SetNotNull();
-        return node;
+        node->InitNode(head, head, head, node_color::Red, false);
+        return node->InitNodeValue(std::forward<Args>(args)...);
+    }
+
+    // 释放节点所占资源
+    constexpr void FreeNode(node_allocator_type& alloc, node_pointer node) DECL_NOEXCEPT
+    {
+        node->FreeNode();
+        std::allocator_traits<node_allocator_type>::deallocate(alloc, node, 1);
+    }
+
+    // 销毁这个节点
+    constexpr void DestroyNode(node_allocator_type& alloc, node_pointer node) DECL_NOEXCEPT
+    {
+        node->DestoryNodeValue();
+        FreeNode(alloc, node);
     }
 
     //  head 节点
@@ -750,22 +751,19 @@ public:
     constexpr void IncrementSize(size_type n = 1) DECL_NOEXCEPT { m_size += n; }
     constexpr void DecrementSize(size_type n = 1) DECL_NOEXCEPT { m_size -= n; }
     // 这棵树Root节点
-    DECL_NODISCARD constexpr node_pointer Root() const DECL_NOEXCEPT
-    {
-        return m_head->Parent();
-    }
-    constexpr void SetRoot(node_pointer node) DECL_NOEXCEPT { m_head->Parent() = node; }
-    DECL_NODISCARD constexpr bool IsRoot(node_pointer node) const DECL_NOEXCEPT { return node == m_head->Parent(); }
+    DECL_NODISCARD constexpr node_pointer GetRoot() const DECL_NOEXCEPT { return m_head->GetParent(); }
+    constexpr void SetRoot(node_pointer node) DECL_NOEXCEPT { m_head->SetParent(node); }
+    DECL_NODISCARD constexpr bool IsRoot(node_pointer node) const DECL_NOEXCEPT { return node == m_head->GetParent(); }
 
     // 这棵树最大的节点
-    DECL_NODISCARD constexpr node_pointer Max() const DECL_NOEXCEPT { return m_head->Right(); }
-    constexpr void SetMax(node_pointer node) DECL_NOEXCEPT { m_head->Right() = node; }
-    DECL_NODISCARD constexpr bool IsMax(node_pointer node) const DECL_NOEXCEPT { return node == m_head->Right(); }
+    DECL_NODISCARD constexpr node_pointer Max() const DECL_NOEXCEPT { return m_head->GetRight(); }
+    constexpr void SetMax(node_pointer node) DECL_NOEXCEPT { m_head->SetRight(node); }
+    DECL_NODISCARD constexpr bool IsMax(node_pointer node) const DECL_NOEXCEPT { return node == m_head->GetRight(); }
 
     // 这棵树最小的节点
-    DECL_NODISCARD constexpr node_pointer Min() const DECL_NOEXCEPT { return m_head->Left(); }
-    constexpr void SetMin(node_pointer node) DECL_NOEXCEPT { m_head->Left() = node; }
-    DECL_NODISCARD constexpr bool IsMin(node_pointer node) const DECL_NOEXCEPT { return node == m_head->Left(); }
+    DECL_NODISCARD constexpr node_pointer Min() const DECL_NOEXCEPT { return m_head->GetLeft(); }
+    constexpr void SetMin(node_pointer node) DECL_NOEXCEPT { m_head->SetLeft(node); }
+    DECL_NODISCARD constexpr bool IsMin(node_pointer node) const DECL_NOEXCEPT { return node == m_head->GetLeft(); }
 
     // 提取出一个节点
     constexpr node_pointer ExtractNode(node_pointer erasedNode) DECL_NOEXCEPT
@@ -774,161 +772,161 @@ public:
         node_pointer fixNodeParent = nullptr;
         node_pointer curNode       = erasedNode;
 
-        if (curNode->Left()->IsNull()) // 左子树为空
+        if (curNode->GetLeft()->IsNull()) // 左子树为空
         {
-            fixNode = curNode->Right();
+            fixNode = curNode->GetRight();
         }
-        else if (curNode->Right()->IsNull()) // 右子树为空
+        else if (curNode->GetRight()->IsNull()) // 右子树为空
         {
-            fixNode = curNode->Left();
+            fixNode = curNode->GetLeft();
         }
         else // 两个子树，用后续节点替换删除
         {
             curNode = curNode->Next();
-            fixNode = curNode->Right();
+            fixNode = curNode->GetRight();
         }
 
         if (curNode == erasedNode) // 最多一个子树，重新连接
         {
-            fixNodeParent = erasedNode->Parent();
+            fixNodeParent = erasedNode->GetParent();
             if (!fixNode->IsNull())
             {
-                fixNode->Parent() = fixNodeParent; // 连接父节点
+                fixNode->SetParent(fixNodeParent); // 连接父节点
             }
 
-            if (m_head->Parent() == erasedNode)
+            if (m_head->GetParent() == erasedNode)
             {
-                m_head->Parent() = fixNode; // root节点
+                m_head->SetParent(fixNode); // root节点
             }
-            else if (fixNodeParent->Left() == erasedNode)
+            else if (fixNodeParent->GetLeft() == erasedNode)
             {
-                fixNodeParent->Left() = fixNode; // 父节点连接左节点
+                fixNodeParent->SetLeft(fixNode); // 父节点连接左节点
             }
             else
             {
-                fixNodeParent->Right() = fixNode; // 父节点连接右节点
+                fixNodeParent->SetRight(fixNode); // 父节点连接右节点
             }
 
-            if (m_head->Left() == erasedNode) // 删除的节点是最小的节点
+            if (m_head->GetLeft() == erasedNode) // 删除的节点是最小的节点
             {
-                m_head->Left() = fixNode->IsNull() ? fixNodeParent : fixNode->Min();
+                m_head->SetLeft(fixNode->IsNull() ? fixNodeParent : fixNode->Min());
             }
-            if (m_head->Right() == erasedNode) // 删除的节点是最大的节点
+            if (m_head->GetRight() == erasedNode) // 删除的节点是最大的节点
             {
-                m_head->Right() = fixNode->IsNull() ? fixNodeParent : fixNode->Max();
+                m_head->SetRight(fixNode->IsNull() ? fixNodeParent : fixNode->Max());
             }
         }
         else // 两个子树 curNode是最终删除的节点
         {
-            curNode->SetLeft(erasedNode->Left());
+            curNode->LinkLeft(erasedNode->GetLeft());
 
-            if (curNode == erasedNode->Right())
+            if (curNode == erasedNode->GetRight())
             {
                 fixNodeParent = curNode;
             }
             else
             {
-                fixNodeParent = curNode->Parent();
+                fixNodeParent = curNode->GetParent();
 
-                fixNodeParent->SetLeft(fixNode->Left());
-                curNode->SetLeft(erasedNode->Right());
+                fixNodeParent->LinkLeft(fixNode->GetLeft());
+                curNode->LinkLeft(erasedNode->GetRight());
             }
 
-            if (m_head->Parent() == erasedNode)
+            if (m_head->GetParent() == erasedNode)
             {
-                m_head->Parent() = curNode;
+                m_head->SetParent(curNode);
             }
-            else if (erasedNode->IsLeft())
+            else if (erasedNode->GetParent()->GetLeft() == erasedNode)
             {
-                erasedNode->Parent()->Left() = curNode;
+                erasedNode->GetParent()->SetLeft(curNode);
             }
             else
             {
-                erasedNode->Parent()->Right() = curNode;
+                erasedNode->GetParent()->SetRight(curNode);
             }
-            curNode->Parent() = erasedNode->Parent();
+            curNode->SetParent(erasedNode->GetParent());
             curNode->SwapColor(erasedNode);
         }
 
-        if (erasedNode->IsBlack())
+        if (erasedNode->GetColor() == node_color::Black)
         {
-            for (; fixNode != m_head->Parent() && fixNode->IsBlack(); fixNodeParent = fixNode->Parent())
+            for (; fixNode != m_head->GetParent() && fixNode->GetColor() == node_color::Black; fixNodeParent = fixNode->GetParent())
             {
-                if (fixNode == fixNodeParent->Left())
+                if (fixNode == fixNodeParent->GetLeft())
                 {
-                    curNode = fixNodeParent->Right();
-                    if (curNode->IsRed())
+                    curNode = fixNodeParent->GetRight();
+                    if (curNode->GetColor() == node_color::Red)
                     {
-                        curNode->SetBlack();
-                        fixNodeParent->SetRed();
+                        curNode->SetColor(node_color::Black);
+                        fixNodeParent->SetColor(node_color::Red);
                         fixNodeParent->Lrotate(m_head);
-                        curNode = fixNodeParent->Right();
+                        curNode = fixNodeParent->GetRight();
                     }
 
                     if (curNode->IsNull())
                     {
                         fixNode = fixNodeParent;
                     }
-                    else if (curNode->Left()->IsBlack() && curNode->Right()->IsBlack())
+                    else if (curNode->GetLeft()->GetColor() == node_color::Black && curNode->GetRight()->GetColor() == node_color::Black)
                     {
-                        curNode->SetRed();
+                        curNode->SetColor(node_color::Red);
                         fixNode = fixNodeParent;
                     }
                     else
                     {
-                        if (curNode->Right()->IsBlack())
+                        if (curNode->GetRight()->GetColor() == node_color::Black)
                         {
-                            curNode->Left()->SetBlack();
-                            curNode->SetRed();
+                            curNode->GetLeft()->SetColor(node_color::Black);
+                            curNode->SetColor(node_color::Red);
                             curNode->Rrotate(m_head);
-                            curNode = fixNodeParent->Right();
+                            curNode = fixNodeParent->GetRight();
                         }
 
-                        fixNodeParent->IsRed() ? curNode->SetRed() : curNode->SetBlack();
-                        fixNodeParent->SetBlack();
-                        curNode->Right()->SetRed();
+                        curNode->SetColor(fixNodeParent->GetColor());
+                        fixNodeParent->SetColor(node_color::Black);
+                        curNode->GetRight()->SetColor(node_color::Black);
                         fixNodeParent->Lrotate(m_head);
                         break;
                     }
                 }
                 else
                 {
-                    curNode = fixNodeParent->Left();
-                    if (curNode->IsRed())
+                    curNode = fixNodeParent->GetLeft();
+                    if (curNode->GetColor() == node_color::Red)
                     {
-                        curNode->SetBlack();
-                        fixNodeParent->SetRed();
+                        curNode->SetColor(node_color::Black);
+                        fixNodeParent->SetColor(node_color::Red);
                         fixNodeParent->Rrotate(m_head);
-                        curNode = fixNodeParent->Left();
+                        curNode = fixNodeParent->GetLeft();
                     }
 
                     if (curNode->IsNull())
                     {
                         fixNode = fixNodeParent;
                     }
-                    else if (curNode->Left()->IsBlack() && curNode->Right()->IsBlack())
+                    else if (curNode->GetLeft()->GetColor() == node_color::Black && curNode->GetRight()->GetColor() == node_color::Black)
                     {
-                        curNode->SetRed();
+                        curNode->SetColor(node_color::Red);
                         fixNode = fixNodeParent;
                     }
                     else
                     {
-                        if (!curNode->Left()->IsRed())
+                        if (curNode->GetLeft()->GetColor() == node_color::Black)
                         {
-                            curNode->Right()->SetBlack();
-                            curNode->SetRed();
+                            curNode->GetRight()->SetColor(node_color::Black);
+                            curNode->SetColor(node_color::Red);
                             curNode->Lrotate(m_head);
-                            curNode = fixNodeParent->Left();
+                            curNode = fixNodeParent->GetLeft();
                         }
-                        fixNodeParent->IsRed() ? curNode->SetRed() : curNode->SetBlack();
-                        fixNodeParent->SetBlack();
-                        curNode->Left()->SetBlack();
+                        curNode->SetColor(fixNodeParent->GetColor());
+                        fixNodeParent->SetColor(node_color::Black);
+                        curNode->GetLeft()->SetColor(node_color::Black);
                         fixNodeParent->Rrotate(m_head);
                         break;
                     }
                 }
             }
-            fixNode->SetBlack();
+            fixNode->SetColor(node_color::Black);
         }
 
         m_size--;
@@ -938,38 +936,38 @@ public:
     constexpr node_pointer InsertNode(node_pointer parent, bool isRight, const node_pointer newNode) DECL_NOEXCEPT
     {
         ++m_size;
-        newNode->Parent() = parent;
+        newNode->SetParent(parent);
         if (parent == m_head) // root节点
         {
-            m_head->Left()   = newNode;
-            m_head->Parent() = newNode;
-            m_head->Right()  = newNode;
-            newNode->SetBlack();
+            m_head->SetLeft(newNode);
+            m_head->SetParent(newNode);
+            m_head->SetRight(newNode);
+            newNode->SetColor(node_color::Black);
             return newNode;
         }
 
         if (isRight)
         {
-            parent->Right() = newNode;          // 插入父节点右边
+            parent->SetRight(newNode);          // 插入父节点右边
             if (IsMax(parent)) SetMax(newNode); // 如果父节点是max节点时，需要将max节点更新为newNode
         }
         else
         {
-            parent->Left() = newNode;           // 插入父节点左边
+            parent->SetLeft(newNode);           // 插入父节点左边
             if (IsMin(parent)) SetMin(newNode); // 如果父节点是min节点时，需要将min节点更新为newNode
         }
 
         node_pointer curNode = newNode;
-        for (node_pointer parentNode = curNode->Parent(); parentNode->IsRed(); parentNode = curNode->Parent())
+        for (node_pointer parentNode = curNode->GetParent(); parentNode->GetColor() == node_color::Red; parentNode = curNode->GetParent())
         {
-            node_pointer grandparentNode = parentNode->Parent();
+            node_pointer grandparentNode = parentNode->GetParent();
             bool parentIsLeft            = parentNode->IsLeft();
-            node_pointer uncleNode       = parentIsLeft ? grandparentNode->Right() : grandparentNode->Left();
-            if (uncleNode->IsRed())
+            node_pointer uncleNode       = parentIsLeft ? grandparentNode->GetRight() : grandparentNode->GetLeft();
+            if (uncleNode->GetColor() == node_color::Red)
             {
-                parentNode->SetBlack();
-                uncleNode->SetBlack();
-                grandparentNode->SetRed();
+                parentNode->SetColor(node_color::Black);
+                uncleNode->SetColor(node_color::Black);
+                grandparentNode->SetColor(node_color::Red);
                 curNode = grandparentNode;
                 continue;
             }
@@ -981,10 +979,10 @@ public:
                     curNode = parentNode;
                     curNode->Lrotate(m_head);
                 }
-                parentNode      = curNode->Parent();
-                grandparentNode = parentNode->Parent();
-                parentNode->SetBlack();
-                grandparentNode->SetRed();
+                parentNode      = curNode->GetParent();
+                grandparentNode = parentNode->GetParent();
+                parentNode->SetColor(node_color::Black);
+                grandparentNode->SetColor(node_color::Red);
                 grandparentNode->Rrotate(m_head);
             }
             else
@@ -994,35 +992,35 @@ public:
                     curNode = parentNode;
                     curNode->Rrotate(m_head);
                 }
-                parentNode      = curNode->Parent();
-                grandparentNode = parentNode->Parent();
-                parentNode->SetBlack();
-                grandparentNode->SetRed();
+                parentNode      = curNode->GetParent();
+                grandparentNode = parentNode->GetParent();
+                parentNode->SetColor(node_color::Black);
+                grandparentNode->SetColor(node_color::Red);
                 grandparentNode->Lrotate(m_head);
             }
         }
 
-        m_head->Parent()->SetBlack();
+        m_head->GetParent()->SetColor(node_color::Black);
         return newNode;
     }
 
     DECL_NODISCARD FindResult FindUpper(const key_type& key) const DECL_NOEXCEPT
     {
-        FindResult result{m_head->Parent(), true, m_head};
+        FindResult result{m_head->GetParent(), true, m_head};
         node_pointer cur = result.m_parent;
         while (!cur->IsNull())
         {
             result.m_parent = cur;
-            if (value_comparator_traits::Compare(key, cur->Value()))
+            if (value_comparator_traits::Compare(key, cur->GetValue()))
             {
                 result.m_isRight = false;
                 result.m_bound   = cur;
-                cur              = cur->Left();
+                cur              = cur->GetLeft();
             }
             else
             {
                 result.m_isRight = true;
-                cur              = cur->Right();
+                cur              = cur->GetRight();
             }
         }
         return result;
@@ -1030,21 +1028,21 @@ public:
 
     DECL_NODISCARD FindResult FindLower(const key_type& key) const DECL_NOEXCEPT
     {
-        FindResult result{m_head->Parent(), true, m_head};
+        FindResult result{m_head->GetParent(), true, m_head};
         node_pointer cur = result.m_parent;
         while (!cur->IsNull())
         {
             result.m_parent = cur;
-            if (value_comparator_traits::Compare(cur->Value(), key))
+            if (value_comparator_traits::Compare(cur->GetValue(), key))
             {
                 result.m_isRight = true;
-                cur              = cur->Right();
+                cur              = cur->GetRight();
             }
             else
             {
                 result.m_isRight = false;
                 result.m_bound   = cur;
-                cur              = cur->Left();
+                cur              = cur->GetLeft();
             }
         }
         return result;
@@ -1054,32 +1052,32 @@ public:
     {
         if (node->IsNull())
         {
-            if (Root()->IsNull() || value_comparator_traits::Compare(m_head->Right()->Value(), key))
+            if (GetRoot()->IsNull() || value_comparator_traits::Compare(m_head->GetRight()->GetValue(), key))
             {
-                return FindHintResult{m_head->Right(), true, false};
+                return FindHintResult{m_head->GetRight(), true, false};
             }
         }
-        else if (m_head->Left() == node)
+        else if (m_head->GetLeft() == node)
         {
-            if (value_comparator_traits::Compare(key, node->Value()))
+            if (value_comparator_traits::Compare(key, node->GetValue()))
             {
                 return FindHintResult{node, false, false};
             }
         }
-        else if (value_comparator_traits::Compare(key, node->Value()))
+        else if (value_comparator_traits::Compare(key, node->GetValue()))
         {
             const auto prev = node->Prev();
-            if (value_comparator_traits::Compare(prev->Value(), key))
+            if (value_comparator_traits::Compare(prev->GetValue(), key))
             {
-                return prev->Right()->IsNull() ? FindHintResult{prev, true, false} : FindHintResult{node, false, false};
+                return prev->GetRight()->IsNull() ? FindHintResult{prev, true, false} : FindHintResult{node, false, false};
             }
         }
-        else if (value_comparator_traits::Compare(node->Value(), key))
+        else if (value_comparator_traits::Compare(node->GetValue(), key))
         {
             const auto next = node->Next();
-            if (next->IsNull() || value_comparator_traits::Compare(key, next->Value()))
+            if (next->IsNull() || value_comparator_traits::Compare(key, next->GetValue()))
             {
-                return node->Right()->IsNull() ? FindHintResult{node, true, false} : FindHintResult{next, false, false};
+                return node->GetRight()->IsNull() ? FindHintResult{node, true, false} : FindHintResult{next, false, false};
             }
         }
         else
@@ -1089,7 +1087,7 @@ public:
 
         auto result        = FindLower(key);
         node_pointer bound = result.m_bound;
-        if (!bound->IsNull() && !value_comparator_traits::Compare(key, bound->Value())) // 重复插入
+        if (!bound->IsNull() && !value_comparator_traits::Compare(key, bound->GetValue())) // 重复插入
         {
             return FindHintResult{bound, false, true};
         }
@@ -1101,7 +1099,7 @@ public:
     {
         auto result        = FindLower(key);
         node_pointer bound = result.m_bound;
-        if (!bound->IsNull() && !value_comparator_traits::Compare(key, bound->Value())) // 重复插入
+        if (!bound->IsNull() && !value_comparator_traits::Compare(key, bound->GetValue())) // 重复插入
         {
             return bound;
         }
@@ -1112,31 +1110,15 @@ public:
     {
         while (!node->IsNull())
         {
-            EraseTree(alloc, node->Right());
-            FreeNode(alloc, std::exchange(node, node->Left()));
+            EraseTree(alloc, node->GetRight());
+            FreeNode(alloc, std::exchange(node, node->GetLeft()));
         }
     }
 
     void EraseHead(node_allocator_type& alloc) DECL_NOEXCEPT
     {
-        EraseTree(alloc, m_head->Parent());
+        EraseTree(alloc, m_head->GetParent());
         FreeNode(alloc, m_head);
-    }
-
-    // 释放节点所占资源
-    constexpr void FreeNode(node_allocator_type& alloc, node_pointer node) DECL_NOEXCEPT
-    {
-        std::destroy_in_place(node->Left());
-        std::destroy_in_place(node->Right());
-        std::destroy_in_place(node->Parent());
-        std::allocator_traits<node_allocator_type>::deallocate(alloc, node, 1);
-    }
-
-    // 销毁这个节点
-    constexpr void DestroyNode(node_allocator_type& alloc, node_pointer node) DECL_NOEXCEPT
-    {
-        std::allocator_traits<node_allocator_type>::destroy(alloc, std::addressof(node->Value()));
-        FreeNode(alloc, node);
     }
 
     constexpr void Swap(RBTreeNodeContainer& other) DECL_NOEXCEPT
@@ -1148,477 +1130,6 @@ public:
 
 private:
     node_pointer m_head;
-    size_type m_size;
-};
-
-template <class Types>
-struct RBTreeNodeBinaryContainer
-{
-    using key_type                = typename Types::key_type;
-    using value_type              = typename Types::value_type;
-    using size_type               = typename Types::size_type;
-    using difference_type         = typename Types::difference_type;
-    using pointer                 = typename Types::pointer;
-    using const_pointer           = typename Types::const_pointer;
-    using reference               = typename Types::reference;
-    using const_reference         = typename Types::const_reference;
-    using node_type               = typename Types::node_type;
-    using node_pointer            = typename Types::node_pointer;
-    using value_compare           = typename Types::value_compare;
-    using value_comparator_traits = ComparatorTraits<value_compare>;
-    using node_allocator_type     = typename node_type::node_allocator_type;
-
-    using iterator       = BPTreeIterator<RBTreeNodeContainer<Types>, false>;
-    using const_iterator = BPTreeIterator<RBTreeNodeContainer<Types>, true>;
-
-    struct FindResult
-    {
-        node_pointer m_parent;
-        bool m_isRight;
-        node_pointer m_bound;
-    };
-
-    struct FindHintResult
-    {
-        node_pointer m_parent;
-        bool m_isRight;
-        bool m_isDuplicate;
-    };
-    // 生成Head节点
-    DECL_NODISCARD constexpr auto GenerateHeadNode(node_allocator_type& alloc) DECL_NOEXCEPT -> node_pointer
-    {
-        node_pointer node = reinterpret_cast<node_pointer>(m_buf.data());
-        std::construct_in_place(node->Left(), node);
-        std::construct_in_place(node->Right(), node);
-        std::construct_in_place(node->Parent(), node);
-        node->IsRed()  = false;
-        node->IsNull() = true;
-        return node;
-    }
-    // 生成普通节点
-    template <class... Args>
-    DECL_NODISCARD constexpr auto GenerateNode(node_allocator_type& alloc, node_pointer head, Args&&... args) DECL_NOEXCEPT -> node_pointer
-    {
-        m_buf.insert(sizeof(node_type), '\0');
-        node_pointer node = reinterpret_cast<node_pointer>(m_buf.data() - sizeof(node_type));
-        std::construct_in_place(node->Value(), std::forward<Args>(args)...);
-        std::construct_in_place(node->Left(), head);
-        std::construct_in_place(node->Right(), head);
-        std::construct_in_place(node->Parent(), head);
-        node->IsRed()  = true;
-        node->IsNull() = false;
-        return node;
-    }
-
-    //  head 节点
-    // DECL_NODISCARD constexpr node_pointer GetHead() const DECL_NOEXCEPT { return reinterpret_cast<node_pointer>(m_buf.data()); }
-    // constexpr node_pointer SetHead(node_pointer head) DECL_NOEXCEPT { return m_head = head; }
-    //
-    //    constexpr void InitSize() DECL_NOEXCEPT { m_size = 0; }
-    //    DECL_NODISCARD constexpr size_type GetSize() const DECL_NOEXCEPT { return m_size; }
-    //    constexpr size_type SetSize(size_type size) DECL_NOEXCEPT { return m_size = size; }
-    //    constexpr void IncrementSize(size_type n = 1) DECL_NOEXCEPT { m_size += n; }
-    //    constexpr void DecrementSize(size_type n = 1) DECL_NOEXCEPT { m_size -= n; }
-    //    // 这棵树Root节点
-    //    DECL_NODISCARD constexpr node_pointer Root() const DECL_NOEXCEPT
-    //    {
-    //        return m_head->Parent();
-    //    }
-    //    constexpr void SetRoot(node_pointer node) DECL_NOEXCEPT { m_head->Parent() = node; }
-    //    DECL_NODISCARD constexpr bool IsRoot(node_pointer node) const DECL_NOEXCEPT { return node == m_head->Parent(); }
-    //
-    //    // 这棵树最大的节点
-    //    DECL_NODISCARD constexpr node_pointer Max() const DECL_NOEXCEPT { return m_head->Right(); }
-    //    constexpr void SetMax(node_pointer node) DECL_NOEXCEPT { m_head->Right() = node; }
-    //    DECL_NODISCARD constexpr bool IsMax(node_pointer node) const DECL_NOEXCEPT { return node == m_head->Right(); }
-    //
-    //    // 这棵树最小的节点
-    //    DECL_NODISCARD constexpr node_pointer Min() const DECL_NOEXCEPT { return m_head->Left(); }
-    //    constexpr void SetMin(node_pointer node) DECL_NOEXCEPT { m_head->Left() = node; }
-    //    DECL_NODISCARD constexpr bool IsMin(node_pointer node) const DECL_NOEXCEPT { return node == m_head->Left(); }
-    //
-    //    // 提取出一个节点
-    //    constexpr node_pointer ExtractNode(node_pointer erasedNode) DECL_NOEXCEPT
-    //    {
-    //        node_pointer fixNode       = nullptr;
-    //        node_pointer fixNodeParent = nullptr;
-    //        node_pointer curNode       = erasedNode;
-    //
-    //        if (curNode->Left()->IsNull()) // 左子树为空
-    //        {
-    //            fixNode = curNode->Right();
-    //        }
-    //        else if (curNode->Right()->IsNull()) // 右子树为空
-    //        {
-    //            fixNode = curNode->Left();
-    //        }
-    //        else // 两个子树，用后续节点替换删除
-    //        {
-    //            curNode = curNode->Next();
-    //            fixNode = curNode->Right();
-    //        }
-    //
-    //        if (curNode == erasedNode) // 最多一个子树，重新连接
-    //        {
-    //            fixNodeParent = erasedNode->Parent();
-    //            if (!fixNode->IsNull())
-    //            {
-    //                fixNode->Parent() = fixNodeParent; // 连接父节点
-    //            }
-    //
-    //            if (m_head->Parent() == erasedNode)
-    //            {
-    //                m_head->Parent() = fixNode; // root节点
-    //            }
-    //            else if (fixNodeParent->Left() == erasedNode)
-    //            {
-    //                fixNodeParent->Left() = fixNode; // 父节点连接左节点
-    //            }
-    //            else
-    //            {
-    //                fixNodeParent->Right() = fixNode; // 父节点连接右节点
-    //            }
-    //
-    //            if (m_head->Left() == erasedNode) // 删除的节点是最小的节点
-    //            {
-    //                m_head->Left() = fixNode->IsNull() ? fixNodeParent : fixNode->Min();
-    //            }
-    //            if (m_head->Right() == erasedNode) // 删除的节点是最大的节点
-    //            {
-    //                m_head->Right() = fixNode->IsNull() ? fixNodeParent : fixNode->Max();
-    //            }
-    //        }
-    //        else // 两个子树 curNode是最终删除的节点
-    //        {
-    //            curNode->SetLeft(erasedNode->Left());
-    //
-    //            if (curNode == erasedNode->Right())
-    //            {
-    //                fixNodeParent = curNode;
-    //            }
-    //            else
-    //            {
-    //                fixNodeParent = curNode->Parent();
-    //
-    //                fixNodeParent->SetLeft(fixNode->Left());
-    //                curNode->SetLeft(erasedNode->Right());
-    //            }
-    //
-    //            if (m_head->Parent() == erasedNode)
-    //            {
-    //                m_head->Parent() = curNode;
-    //            }
-    //            else if (erasedNode->Parent()->Left() == erasedNode)
-    //            {
-    //                erasedNode->Parent()->Left() = curNode;
-    //            }
-    //            else
-    //            {
-    //                erasedNode->Parent()->Right() = curNode;
-    //            }
-    //            curNode->Parent() = erasedNode->Parent();
-    //            std::swap(curNode->IsRed(), erasedNode->IsRed());
-    //        }
-    //
-    //        if (!erasedNode->IsRed())
-    //        {
-    //            for (; fixNode != m_head->Parent() && !fixNode->IsRed(); fixNodeParent = fixNode->Parent())
-    //            {
-    //                if (fixNode == fixNodeParent->Left())
-    //                {
-    //                    curNode = fixNodeParent->Right();
-    //                    if (curNode->IsRed())
-    //                    {
-    //                        curNode->SetBlack();
-    //                        fixNodeParent->SetRed();
-    //                        fixNodeParent->Lrotate(m_head);
-    //                        curNode = fixNodeParent->Right();
-    //                    }
-    //
-    //                    if (curNode->IsNull())
-    //                    {
-    //                        fixNode = fixNodeParent;
-    //                    }
-    //                    else if (!curNode->Left()->IsRed() && !curNode->Right()->IsRed())
-    //                    {
-    //                        curNode->SetRed();
-    //                        fixNode          = fixNodeParent;
-    //                    }
-    //                    else
-    //                    {
-    //                        if (!curNode->Right()->IsRed())
-    //                        {
-    //                            curNode->Left()->IsRed() = Black;
-    //                            curNode->IsRed()         = Red;
-    //                            curNode->Rrotate(m_head);
-    //                            curNode = fixNodeParent->Right();
-    //                        }
-    //
-    //                        curNode->IsRed()          = fixNodeParent->IsRed();
-    //                        fixNodeParent->IsRed()    = Black;
-    //                        curNode->Right()->IsRed() = Black;
-    //                        fixNodeParent->Lrotate(m_head);
-    //                        break;
-    //                    }
-    //                }
-    //                else
-    //                {
-    //                    curNode = fixNodeParent->Left();
-    //                    if (curNode->IsRed())
-    //                    {
-    //                        curNode->SetBlack();
-    //                        fixNodeParent->SetRed();
-    //                        fixNodeParent->Rrotate(m_head);
-    //                        curNode = fixNodeParent->Left();
-    //                    }
-    //
-    //                    if (curNode->IsNull())
-    //                    {
-    //                        fixNode = fixNodeParent;
-    //                    }
-    //                    else if (!curNode->Left()->IsRed() && !curNode->Right()->IsRed())
-    //                    {
-    //                        curNode->SetRed();
-    //                        fixNode          = fixNodeParent;
-    //                    }
-    //                    else
-    //                    {
-    //                        if (!curNode->Left()->IsRed())
-    //                        {
-    //                            curNode->Right()->IsRed() = Black;
-    //                            curNode->IsRed()          = Red;
-    //                            curNode->Lrotate(m_head);
-    //                            curNode = fixNodeParent->Left();
-    //                        }
-    //
-    //                        curNode->IsRed()         = fixNodeParent->IsRed();
-    //                        fixNodeParent->IsRed()   = Black;
-    //                        curNode->Left()->IsRed() = Black;
-    //                        fixNodeParent->Rrotate(m_head);
-    //                        break;
-    //                    }
-    //                }
-    //            }
-    //            fixNode->IsRed() = Black;
-    //        }
-    //
-    //        m_size--;
-    //        return erasedNode;
-    //    }
-    //
-    //    constexpr node_pointer InsertNode(node_pointer parent, bool isRight, const node_pointer newNode) DECL_NOEXCEPT
-    //    {
-    //        ++m_size;
-    //        newNode->Parent() = parent;
-    //        if (parent == m_head) // root节点
-    //        {
-    //            m_head->Left()   = newNode;
-    //            m_head->Parent() = newNode;
-    //            m_head->Right()  = newNode;
-    //            newNode->IsRed() = Black;
-    //            return newNode;
-    //        }
-    //
-    //        if (isRight)
-    //        {
-    //            parent->Right() = newNode;          // 插入父节点右边
-    //            if (IsMax(parent)) SetMax(newNode); // 如果父节点是max节点时，需要将max节点更新为newNode
-    //        }
-    //        else
-    //        {
-    //            parent->Left() = newNode;           // 插入父节点左边
-    //            if (IsMin(parent)) SetMin(newNode); // 如果父节点是min节点时，需要将min节点更新为newNode
-    //        }
-    //
-    //        node_pointer curNode = newNode;
-    //        for (node_pointer parentNode = curNode->Parent(); parentNode->IsRed(); parentNode = curNode->Parent())
-    //        {
-    //            node_pointer grandparentNode = parentNode->Parent();
-    //            bool parentIsLeft            = parentNode->IsLeft();
-    //            node_pointer uncleNode       = parentIsLeft ? grandparentNode->Right() : grandparentNode->Left();
-    //            if (uncleNode->IsRed())
-    //            {
-    //                parentNode->IsRed()      = Black;
-    //                uncleNode->SetBlack();
-    //                grandparentNode->SetRed();
-    //                curNode                  = grandparentNode;
-    //                continue;
-    //            }
-    //
-    //            if (parentIsLeft)
-    //            {
-    //                if (curNode->IsRight())
-    //                {
-    //                    curNode = parentNode;
-    //                    curNode->Lrotate(m_head);
-    //                }
-    //                parentNode               = curNode->Parent();
-    //                grandparentNode          = parentNode->Parent();
-    //                parentNode->IsRed()      = Black;
-    //                grandparentNode->SetRed();
-    //                grandparentNode->Rrotate(m_head);
-    //            }
-    //            else
-    //            {
-    //                if (curNode->IsLeft())
-    //                {
-    //                    curNode = parentNode;
-    //                    curNode->Rrotate(m_head);
-    //                }
-    //                parentNode               = curNode->Parent();
-    //                grandparentNode          = parentNode->Parent();
-    //                parentNode->IsRed()      = Black;
-    //                grandparentNode->SetRed();
-    //                grandparentNode->Lrotate(m_head);
-    //            }
-    //        }
-    //
-    //        m_head->Parent()->IsRed() = Black;
-    //        return newNode;
-    //    }
-    //
-    //    DECL_NODISCARD FindResult FindUpper(const key_type& key) const DECL_NOEXCEPT
-    //    {
-    //        FindResult result{m_head->Parent(), true, m_head};
-    //        node_pointer cur = result.m_parent;
-    //        while (!cur->IsNull())
-    //        {
-    //            result.m_parent = cur;
-    //            if (value_comparator_traits::Compare(key, cur->Value()))
-    //            {
-    //                result.m_isRight = false;
-    //                result.m_bound   = cur;
-    //                cur              = cur->Left();
-    //            }
-    //            else
-    //            {
-    //                result.m_isRight = true;
-    //                cur              = cur->Right();
-    //            }
-    //        }
-    //        return result;
-    //    }
-    //
-    //    DECL_NODISCARD FindResult FindLower(const key_type& key) const DECL_NOEXCEPT
-    //    {
-    //        FindResult result{m_head->Parent(), true, m_head};
-    //        node_pointer cur = result.m_parent;
-    //        while (!cur->IsNull())
-    //        {
-    //            result.m_parent = cur;
-    //            if (value_comparator_traits::Compare(cur->Value(), key))
-    //            {
-    //                result.m_isRight = true;
-    //                cur              = cur->Right();
-    //            }
-    //            else
-    //            {
-    //                result.m_isRight = false;
-    //                result.m_bound   = cur;
-    //                cur              = cur->Left();
-    //            }
-    //        }
-    //        return result;
-    //    }
-    //
-    //    DECL_NODISCARD FindHintResult FindHint(const node_pointer node, const key_type& key) const DECL_NOEXCEPT
-    //    {
-    //        if (node->IsNull())
-    //        {
-    //            if (Root()->IsNull() || value_comparator_traits::Compare(m_head->Right()->Value(), key))
-    //            {
-    //                return FindHintResult{m_head->Right(), true, false};
-    //            }
-    //        }
-    //        else if (m_head->Left() == node)
-    //        {
-    //            if (value_comparator_traits::Compare(key, node->Value()))
-    //            {
-    //                return FindHintResult{node, false, false};
-    //            }
-    //        }
-    //        else if (value_comparator_traits::Compare(key, node->Value()))
-    //        {
-    //            const auto prev = node->Prev();
-    //            if (value_comparator_traits::Compare(prev->Value(), key))
-    //            {
-    //                return prev->Right()->IsNull() ? FindHintResult{prev, true, false} : FindHintResult{node, false, false};
-    //            }
-    //        }
-    //        else if (value_comparator_traits::Compare(node->Value(), key))
-    //        {
-    //            const auto next = node->Next();
-    //            if (next->IsNull() || value_comparator_traits::Compare(key, next->Value()))
-    //            {
-    //                return node->Right()->IsNull() ? FindHintResult{node, true, false} : FindHintResult{next, false, false};
-    //            }
-    //        }
-    //        else
-    //        {
-    //            return FindHintResult{node, true, true};
-    //        }
-    //
-    //        auto result        = FindLower(key);
-    //        node_pointer bound = result.m_bound;
-    //        if (!bound->IsNull() && !value_comparator_traits::Compare(key, bound->Value())) // 重复插入
-    //        {
-    //            return FindHintResult{bound, false, true};
-    //        }
-    //
-    //        return FindHintResult{result.m_parent, result.m_isRight, false};
-    //    }
-    //
-    //    DECL_NODISCARD node_pointer Find(const key_type& key) const DECL_NOEXCEPT
-    //    {
-    //        auto result        = FindLower(key);
-    //        node_pointer bound = result.m_bound;
-    //        if (!bound->IsNull() && !value_comparator_traits::Compare(key, bound->Value())) // 重复插入
-    //        {
-    //            return bound;
-    //        }
-    //        return m_head;
-    //    }
-    //
-    //    void EraseTree(node_allocator_type& alloc, node_pointer node) DECL_NOEXCEPT
-    //    {
-    //        while (!node->IsNull())
-    //        {
-    //            EraseTree(alloc, node->Right());
-    //            m_ctrl.m_cont.FreeNode(alloc, std::exchange(node, node->Left()));
-    //        }
-    //    }
-    //
-    //    void EraseHead(node_allocator_type& alloc) DECL_NOEXCEPT
-    //    {
-    //        EraseTree(alloc, m_head->Parent());
-    //        m_ctrl.m_cont.FreeNode(alloc, m_head);
-    //    }
-    //
-    // 释放节点所占资源
-    constexpr void FreeNode(node_allocator_type& alloc, node_pointer node) DECL_NOEXCEPT
-    {
-        std::destroy_in_place(node->Left());
-        std::destroy_in_place(node->Right());
-        std::destroy_in_place(node->Parent());
-
-        // auto offset = std::distance(node, buf.data());
-
-        std::allocator_traits<node_allocator_type>::deallocate(alloc, node, 1);
-    }
-
-    // 销毁这个节点
-    constexpr void DestroyNode(node_allocator_type& alloc, node_pointer node) DECL_NOEXCEPT
-    {
-        std::allocator_traits<node_allocator_type>::destroy(alloc, std::addressof(node->Value()));
-        FreeNode(alloc, node);
-    }
-
-    constexpr void Swap(RBTreeNodeBinaryContainer& other) DECL_NOEXCEPT
-    {
-    }
-
-private:
-    std::string m_buf = std::string(sizeof(node_type), '\0');
     size_type m_size;
 };
 
@@ -1644,6 +1155,7 @@ public:
     using node_allocator_type   = typename node_type::node_allocator_type;
     using node_allocator_traits = typename node_type::node_allocator_traits;
     using node_pointer          = typename node_type::node_pointer;
+    using node_color            = typename node_type::NodeColor;
 
     using rbtree_types = container::TreeContainerTypes<key_type,
                                                        value_type,
@@ -1729,7 +1241,7 @@ public:
             auto findResult    = m_ctrl.m_cont.FindLower(key);
             node_pointer bound = findResult.m_bound;
 
-            if (!bound->IsNull() && !value_comparator_traits::Compare(key, bound->Value())) // 重复插入
+            if (!bound->IsNull() && !value_comparator_traits::Compare(key, bound->GetValue())) // 重复插入
             {
                 return {iterator(bound, &m_ctrl.m_cont), false};
             }
@@ -1740,10 +1252,10 @@ public:
         else
         {
             newNode            = m_ctrl.m_cont.GenerateNode(get_node_allocator(), m_ctrl.m_cont.GetHead(), std::forward<Args>(args)...);
-            auto& key          = RBTreeKeyExtract<key_type, std::remove_cvref_t<decltype(newNode->Value())>>::Extract(newNode->Value());
+            auto& key          = RBTreeKeyExtract<key_type, std::remove_cvref_t<decltype(newNode->GetValue())>>::Extract(newNode->GetValue());
             auto findResult    = m_ctrl.m_cont.FindLower(key);
             node_pointer bound = findResult.m_bound;
-            if (!bound->IsNull() && !value_comparator_traits::Compare(key, bound->Value())) // 重复插入
+            if (!bound->IsNull() && !value_comparator_traits::Compare(key, bound->GetValue())) // 重复插入
             {
                 return {iterator(bound, &m_ctrl.m_cont), false};
             }
@@ -1778,7 +1290,7 @@ public:
         else
         {
             newNode         = m_ctrl.m_cont.GenerateNode(get_node_allocator(), m_ctrl.m_cont.GetHead(), std::forward<Args>(args)...);
-            auto& key       = RBTreeKeyExtract<key_type, std::remove_cvref_t<decltype(newNode->Value())>>::Extract(newNode->Value());
+            auto& key       = RBTreeKeyExtract<key_type, std::remove_cvref_t<decltype(newNode->GetValue())>>::Extract(newNode->GetValue());
             auto findResult = m_ctrl.m_cont.FindHint(pos.m_iter, key);
 
             if (findResult.m_isDuplicate)
@@ -1794,7 +1306,7 @@ public:
 
     constexpr void clear() DECL_NOEXCEPT
     {
-        m_ctrl.m_cont.EraseTree(get_node_allocator(), m_ctrl.m_cont.Root());
+        m_ctrl.m_cont.EraseTree(get_node_allocator(), m_ctrl.m_cont.GetRoot());
         m_ctrl.m_cont.SetRoot(m_ctrl.m_cont.GetHead());
         m_ctrl.m_cont.SetMax(m_ctrl.m_cont.GetHead());
         m_ctrl.m_cont.SetMin(m_ctrl.m_cont.GetHead());
@@ -2005,7 +1517,7 @@ public:
     {
         auto result        = m_ctrl.m_cont.FindLower(key);
         node_pointer bound = result.m_bound;
-        if (!bound->IsNull() && !value_comparator_traits::Compare(key, bound->Value()))
+        if (!bound->IsNull() && !value_comparator_traits::Compare(key, bound->GetValue()))
         {
             return true;
         }
@@ -2016,7 +1528,7 @@ public:
     {
         auto result        = m_ctrl.m_cont.FindLower(key);
         node_pointer bound = result.m_bound;
-        if (!bound->IsNull() && !value_comparator_traits::Compare(key, bound->Value()))
+        if (!bound->IsNull() && !value_comparator_traits::Compare(key, bound->GetValue()))
         {
             return 1;
         }
@@ -2065,18 +1577,18 @@ public:
         m_ctrl.m_cont.Swap(other.m_ctrl.m_cont);
     }
 
-    DECL_NODISCARD node_handle extract(const const_iterator pos)
+    DECL_NODISCARD node_handle extract(const_iterator pos)
     {
 #ifndef NDEBUG
         ASSERT(pos.m_cont == &m_ctrl.m_cont, "Iterators incompatible");
         ASSERT(!pos.m_iter->IsNull(), "cannot erase end iterator");
 #endif // ! NDBUG
         node_pointer node = m_ctrl.m_cont.ExtractNode(pos.m_iter);
-        return node_handle::Make(node, get_allocator());
+        return node_handle::Make(node, &pos.m_cont);
     }
     node_handle extract(const key_type& key)
     {
-        const const_iterator pos = find(key);
+        const_iterator pos = find(key);
         if (pos == end())
         {
             return node_handle{};
@@ -2095,10 +1607,10 @@ public:
         ASSERT(nh.get_allocator() == get_allocator(), "node handle allocator incompatible for insert");
 #endif // ! NDBUG
         using key_extractor = RBTreeKeyExtract<key_type, std::pair<const key_type, value_type>>;
-        const auto& key     = key_extractor::Extract(nh.get_pointer()->Value());
+        const auto& key     = key_extractor::Extract(nh.get_pointer()->GetValue());
         auto result         = m_ctrl.m_cont.FindLower(key);
         node_pointer bound  = result.m_bound;
-        if (!bound->IsNull() && !value_comparator_traits::Compare(key, bound->Value()))
+        if (!bound->IsNull() && !value_comparator_traits::Compare(key, bound->GetValue()))
         {
             return InsertHandleResult<iterator, node_handle>(iterator(bound, &m_ctrl.m_cont), false, std::move(nh));
         }
@@ -2107,7 +1619,7 @@ public:
         const auto inserted = m_ctrl.m_cont.InsertNode(result.m_parent, result.m_isRight, nh.Release());
         return InsertHandleResult<iterator, node_handle>(iterator(inserted, &m_ctrl.m_cont), true, std::move(nh));
     }
-    iterator insert(const const_iterator pos, node_handle&& nh)
+    iterator insert(const_iterator pos, node_handle&& nh)
     {
         if (nh.empty())
         {
@@ -2118,7 +1630,7 @@ public:
         ASSERT(nh.get_allocator() == get_allocator(), "node handle allocator incompatible for insert");
 #endif // ! NDBUG
         using key_extractor = RBTreeKeyExtract<key_type, std::pair<const key_type, value_type>>;
-        const auto& key     = key_extractor::Extract(nh.get_pointer()->Value());
+        const auto& key     = key_extractor::Extract(nh.get_pointer()->GetValue());
         auto result         = m_ctrl.m_cont.FindHint(pos.m_iter, key);
         if (result.m_isDuplicate)
         {
@@ -2145,15 +1657,15 @@ public:
 
             auto result        = m_ctrl.m_cont.FindLower(key);
             node_pointer bound = result.m_bound;
-            if (!bound->IsNull() && !value_comparator_traits::Compare(key, bound->Value()))
+            if (!bound->IsNull() && !value_comparator_traits::Compare(key, bound->GetValue()))
             {
                 continue;
             }
             ThrowException(max_size() != m_ctrl.m_cont.GetSize(), "too long");
-            const auto extracted = other.m_ctrl.m_cont.ExtractNode(node);
-            extracted->Left()    = head;
-            extracted->Right()   = head;
-            extracted->SetRed();
+            node_pointer extracted = other.m_ctrl.m_cont.ExtractNode(node);
+            extracted->SetLeft(head);
+            extracted->SetRight(head);
+            extracted->SetColor(node_color::Red);
 
             m_ctrl.m_cont.InsertNode(result.m_parent, result.m_isRight, extracted);
         }
@@ -2168,17 +1680,17 @@ protected:
     template <class ElemConstructTag>
     DECL_NODISCARD constexpr void CopyRBTree(const RBTree& other, ElemConstructTag tag) DECL_NOEXCEPT
     {
-        m_ctrl.m_cont.SetRoot(CopyRBTreeNodes(other.m_ctrl.m_cont.GetHead()->Parent(), tag));
+        m_ctrl.m_cont.SetRoot(CopyRBTreeNodes(other.m_ctrl.m_cont.GetHead()->GetParent(), tag));
         m_ctrl.m_cont.SetSize(other.m_ctrl.m_cont.GetSize());
-        if (m_ctrl.m_cont.Root()->IsNull())
+        if (m_ctrl.m_cont.GetRoot()->IsNull())
         {
             m_ctrl.m_cont.SetMin(m_ctrl.m_cont.GetHead());
             m_ctrl.m_cont.SetMax(m_ctrl.m_cont.GetHead());
         }
         else
         {
-            m_ctrl.m_cont.SetMin(m_ctrl.m_cont.Root()->Min());
-            m_ctrl.m_cont.SetMax(m_ctrl.m_cont.Root()->Max());
+            m_ctrl.m_cont.SetMin(m_ctrl.m_cont.GetRoot()->Min());
+            m_ctrl.m_cont.SetMax(m_ctrl.m_cont.GetRoot()->Max());
         }
     }
 
@@ -2190,10 +1702,10 @@ protected:
             return m_ctrl.m_cont.GetHead();
         }
 
-        node_pointer newNode = ConstructNode(node->Value(), tag);
-        node->IsRed() ? newNode->SetRed() : newNode->SetBlack();
-        newNode->Left()  = CopyRBTreeNodes(node->Left(), tag);
-        newNode->Right() = CopyRBTreeNodes(node->Right(), tag);
+        node_pointer newNode = ConstructNode(node->GetValue(), tag);
+        newNode->SetColor(node->GetColor());
+        newNode->SetLeft(CopyRBTreeNodes(node->GetLeft(), tag));
+        newNode->SetRight(CopyRBTreeNodes(node->GetRight(), tag));
         return newNode;
     }
 

@@ -437,19 +437,9 @@ TEST(ConcurrentMapTest, SingleThread_Test1)
     {
         map.emplace(dev(), i);
     }
-    std::map<int, int> map2;
-    for (auto i = 0; i < 100000; i++)
-    {
-        map2.emplace(dev(), i);
-    }
-
     while (!map.empty())
     {
         map.erase(map.begin());
-    }
-    while (!map2.empty())
-    {
-        map2.erase(map2.begin());
     }
 }
 TEST(ConcurrentMapTest, SingleThread_Test2)
